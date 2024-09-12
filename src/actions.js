@@ -1833,6 +1833,9 @@ export const actions = {
                 Lumber(offset){ return costMultiplier('compost', offset, 12, 1.36); },
                 Stone(offset){ return costMultiplier('compost', offset, 12, 1.36); }
             },
+            fuel_cost:{
+                Lumber(){return global.race['kindling_kindred'] || global.race['smoldering'] ? 0 : 0.5}
+            },
             effect(){
                 let generated = 1.2 + ((global.tech['compost'] ? global.tech['compost'] : 0) * 0.8);
                 generated *= global.city.biome === 'grassland' ? biomes.grassland.vars()[0] : 1;
@@ -1843,7 +1846,7 @@ export const actions = {
                 generated *= global.city.ptrait.includes('trashed') ? planetTraits.trashed.vars()[0] : 1;
                 generated = +(generated).toFixed(2);
                 let store = BHStorageMulti(spatialReasoning(200));
-                let wood = global.race['kindling_kindred'] || global.race['smoldering'] ? `` : `<div class="has-text-caution">${loc('city_compost_heap_effect2',[0.5,global.resource.Lumber.name])}</div>`;
+                let wood = global.race['kindling_kindred'] || global.race['smoldering'] ? `` : `<div class="has-text-caution">${loc('city_compost_heap_effect2',[$(this)[0].fuel_cost.Lumber(),global.resource.Lumber.name])}</div>`;
                 return `<div>${loc('city_compost_heap_effect',[generated])}</div><div>${loc('city_compost_heap_effect3',[store])}</div>${wood}`;
             },
             switchable(){ return true; },
@@ -1882,7 +1885,8 @@ export const actions = {
                 Iron(offset){ return costMultiplier('mill', offset, 150, 1.33); },
                 Cement(offset){ return costMultiplier('mill', offset, 125, 1.33); },
             },
-            powered(){ return global.race['environmentalist'] ? -1.5 : -1; },
+            powered(){ return 0 },
+            power_gen(){return global.race['environmentalist'] ? 1.5 : 1},
             power_reqs: { agriculture: 6 },
             effect(){
                 if (global.tech['agriculture'] >= 6){
@@ -1912,7 +1916,7 @@ export const actions = {
             category: 'utility',
             reqs: { wind_plant: 1 },
             not_trait: ['cataclysm','lone_survivor'],
-            powered(){ return global.race['environmentalist'] ? -1.5 : -1; },
+            power_gen(){ return global.race['environmentalist'] ? 1.5 : 1; },
             power_reqs: { false: 1 },
             cost: {
                 Money(offset){ return costMultiplier('windmill', offset, 1000, 1.31); },
@@ -3056,6 +3060,9 @@ export const actions = {
                 Furs(offset){ return costMultiplier('tourist_center', offset, 7500, 1.36); },
                 Plywood(offset){ return costMultiplier('tourist_center', offset, 5000, 1.36); },
             },
+            fuel_cost:{
+                Food(){ return 50 }
+            },
             effect(){
                 let xeno = global.tech['monument'] && global.tech.monument >= 3 && p_on['s_gate'] ? 3 : 1;
                 let amp = (global.civic.govern.type === 'corpocracy' ? 2 : 1) * xeno;
@@ -3802,26 +3809,23 @@ export const actions = {
                 Cement(offset){ return costMultiplier('coal_power', offset, 600, dirt_adjust(1.22)); },
                 Steel(offset){ return costMultiplier('coal_power', offset, 2000, dirt_adjust(1.22)) - 1000; }
             },
+            fuel_cost:{
+                Coal(){return global.universe !== "magic" ? 0.35 : 0},
+                Mana(){return global.universe === "magic" ? 0.05 : 0}
+            },
             effect(){
-                let consume = global.race.universe === 'magic' ? 0.05 : 0.35;
-                let power = -($(this)[0].powered());
+                let consume = global.universe === "magic" ? $(this)[0].fuel_cost.Mana() : $(this)[0].fuel_cost.Coal();
+                let power = $(this)[0].power_gen();
                 return global.race['environmentalist'] ? `+${power}MW` : `<span>+${power}MW.</span> <span class="has-text-caution">${loc(global.race.universe === 'magic' ? 'city_mana_engine_effect' : 'city_coal_power_effect',[consume])}</span>`;
             },
-            powered(){
+            powered(){return 0},
+            power_gen(){
                 let power = global.race['environmentalist']
-                    ? global.stats.achieve['dissipated'] && global.stats.achieve['dissipated'].l >= 1 ? -5 : -4
-                    : global.stats.achieve['dissipated'] && global.stats.achieve['dissipated'].l >= 1 ? -6 : -5;
+                    ? global.stats.achieve['dissipated'] && global.stats.achieve['dissipated'].l >= 1 ? 5 : 4
+                    : global.stats.achieve['dissipated'] && global.stats.achieve['dissipated'].l >= 1 ? 6 : 5;
                 let dirt = govActive('dirty_jobs',1);
-                if (dirt){ power -= dirt; }
+                if (dirt){ power += dirt; }
                 return powerModifier(power);
-            },
-            p_fuel(){
-                if (global.race.universe === 'magic'){
-                    return { r: 'Mana', a: global.race['environmentalist'] ? 0 : 0.05 };
-                }
-                else {
-                    return { r: 'Coal', a: global.race['environmentalist'] ? 0 : 0.35 };
-                }
             },
             action(){
                 if (payCosts($(this)[0])){
@@ -3853,35 +3857,34 @@ export const actions = {
                 Aluminium(offset){ return costMultiplier('oil_power', offset, 12000, dirt_adjust(1.22)); },
                 Cement(offset){ return costMultiplier('oil_power', offset, 5600, dirt_adjust(1.22)) + 1000; }
             },
+            fuel_cost:{
+                Oil(){return global.race['environmentalist'] ? 0 : 0.65 }
+            },
             effect(){
-                let consume = 0.65;
-                let power = -($(this)[0].powered());
+                let consume = $(this)[0].fuel_cost.Oil();
+                let power = $(this)[0].power_gen();
                 return global.race['environmentalist'] ? `+${power}MW` : `<span>+${power}MW.</span> <span class="has-text-caution">${loc('city_oil_power_effect',[consume])}</span>`;
             },
-            powered(){
+            power_gen(){
                 let power = 0;
                 if (global.race['environmentalist']){
+                    power = global.city.calendar.wind === 1 ? 7 : 5;
                     if (global.stats.achieve['dissipated'] && global.stats.achieve['dissipated'].l >= 3){
-                        let base = global.city.calendar.wind === 1 ? -7 : -5;
-                        power = global.stats.achieve['dissipated'].l >= 5 ? (base - 2) : (base - 1);
-                    }
-                    else {
-                        power = global.city.calendar.wind === 1 ? -7 : -5;
+                        power += (global.stats.achieve['dissipated'].l >= 5 ? 2 : 1);
                     }
                 }
                 else {
                     if (global.stats.achieve['dissipated'] && global.stats.achieve['dissipated'].l >= 3){
-                        power = global.stats.achieve['dissipated'].l >= 5 ? -8 : -7;
+                        power = global.stats.achieve['dissipated'].l >= 5 ? 8 : 7;
                     }
                     else {
-                        power = -6;
+                        power = 6;
                     }
                 }
                 let dirt = govActive('dirty_jobs',1);
-                if (dirt){ power -= dirt; }
+                if (dirt){ power += dirt; }
                 return powerModifier(power);
             },
-            p_fuel(){ return { r: 'Oil', a: global.race['environmentalist'] ? 0 : 0.65 }; },
             action(){
                 if (payCosts($(this)[0])){
                     global.city.oil_power.count++;
@@ -3906,12 +3909,14 @@ export const actions = {
                 Cement(offset){ return costMultiplier('fission_power', offset, 10800, 1.36); },
                 Titanium(offset){ return costMultiplier('fission_power', offset, 7500, 1.36); }
             },
-            effect(){
-                let consume = 0.1;
-                return `<span>+${-($(this)[0].powered())}MW.</span> <span class="has-text-caution">${loc('city_fission_power_effect',[consume])}</span>`;
+            fuel_cost:{
+                Uranium(){return 0.1 }
             },
-            powered(){ return powerModifier(global.tech['uranium'] >= 4 ? -18 : -14); },
-            p_fuel(){ return { r: 'Uranium', a: 0.1 }; },
+            effect(){
+                let consume = $(this)[0].fuel_cost.Uranium();
+                return `<span>+${$(this)[0].power_gen()}MW.</span> <span class="has-text-caution">${loc('city_fission_power_effect',[consume])}</span>`;
+            },
+            power_gen(){ return powerModifier(global.tech['uranium'] >= 4 ? 18 : 14); },
             action(){
                 if (payCosts($(this)[0])){
                     global.city.fission_power.count++;

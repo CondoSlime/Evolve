@@ -768,12 +768,17 @@ const fortressModules = {
                 Stanene(offset){ return spaceCostMultiplier('inferno_power', offset, 12000000, 1.18, 'portal'); },
                 Bolognium(offset){ return spaceCostMultiplier('inferno_power', offset, 8000000, 1.18, 'portal'); },
             },
-            powered(){
+            fuel_cost:{
+                Infernite(){return 5},
+                Coal(){return 100},
+                Oil(){return 80}
+            },
+            power_gen(){
                 let power = 20;
                 if (p_on.hasOwnProperty('hell_forge')){
                     power += p_on['hell_forge'] * 10; 
                 }
-                return powerModifier(-(power));
+                return powerModifier(power);
             },
             fuel: {
                 Infernite: 5,
@@ -781,8 +786,8 @@ const fortressModules = {
                 Oil: 80
             },
             effect(){
-                let fuel = $(this)[0].fuel;
-                return `<div>${loc('space_dwarf_reactor_effect1',[-($(this)[0].powered())])}</div><div class="has-text-caution">${loc('portal_inferno_power_effect',[fuel.Infernite,global.resource.Infernite.name,fuel.Coal,global.resource.Coal.name,fuel.Oil,global.resource.Oil.name])}</div>`;
+                let fuel = $(this)[0].fuel_cost;
+                return `<div>${loc('space_dwarf_reactor_effect1',[$(this)[0].power_gen()])}</div><div class="has-text-caution">${loc('portal_inferno_power_effect',[fuel.Infernite(),global.resource.Infernite.name,fuel.Coal(),global.resource.Coal.name,fuel.Oil(),global.resource.Oil.name])}</div>`;
             },
             action(){
                 if (payCosts($(this)[0])){
