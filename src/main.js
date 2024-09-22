@@ -1878,67 +1878,69 @@ function fastLoop(){
             for (let i=0; i<galaxy_ship_types[j].ships.length; i++){
                 let ship = galaxy_ship_types[j].ships[i];
                 let req = galaxy_ship_types[j].hasOwnProperty('req') ? (p_on[galaxy_ship_types[j].req] > 0 ? true : false) : true;
-                if (req && global[area][ship] && global[area][ship].hasOwnProperty('on')){
-                    if (actions[area][region][ship].ship['civ'] && global[area][ship].hasOwnProperty('crew')){
-                        // Civilian ships can only be crewed at a rate of 1 ship (per type) per fast tick
-                        let civPerShip = actions[area][region][ship].ship.civ();
-                        if (global[area][ship].crew < 0){
-                            global[area][ship].crew = 0;
-                        }
-                        if (global[area][ship]['crew'] < global[area][ship].on * civPerShip){
-                            if (total < global.resource[global.race.species].amount){
-                                if (global.civic[global.civic.d_job].workers >= civPerShip){
-                                    global.civic[global.civic.d_job].workers -= civPerShip;
-                                    global.civic.crew.workers += civPerShip;
-                                    global[area][ship]['crew'] += civPerShip;
+                if (global[area][ship] && global[area][ship].hasOwnProperty('on')){
+                    if(req){
+                        if (actions[area][region][ship].ship['civ'] && global[area][ship].hasOwnProperty('crew')){
+                            // Civilian ships can only be crewed at a rate of 1 ship (per type) per fast tick
+                            let civPerShip = actions[area][region][ship].ship.civ();
+                            if (global[area][ship].crew < 0){
+                                global[area][ship].crew = 0;
+                            }
+                            if (global[area][ship]['crew'] < global[area][ship].on * civPerShip){
+                                if (total < global.resource[global.race.species].amount){
+                                    if (global.civic[global.civic.d_job].workers >= civPerShip){
+                                        global.civic[global.civic.d_job].workers -= civPerShip;
+                                        global.civic.crew.workers += civPerShip;
+                                        global[area][ship]['crew'] += civPerShip;
+                                    }
                                 }
                             }
+                            else if (global[area][ship]['crew'] > global[area][ship].on * civPerShip){
+                                global.civic[global.civic.d_job].workers += civPerShip;
+                                global.civic.crew.workers -= civPerShip;
+                                global[area][ship]['crew'] -= civPerShip;
+                            }
+                            global.civic.crew.assigned = global.civic.crew.workers;
+                            crew_civ += global[area][ship]['crew'];
+                            total += global[area][ship]['crew'];
                         }
-                        else if (global[area][ship]['crew'] > global[area][ship].on * civPerShip){
-                            global.civic[global.civic.d_job].workers += civPerShip;
-                            global.civic.crew.workers -= civPerShip;
-                            global[area][ship]['crew'] -= civPerShip;
+    
+                        if (actions[area][region][ship].ship['mil'] && global[area][ship].hasOwnProperty('mil')){
+                            // All military ships can be crewed instantly
+                            let milPerShip = actions[area][region][ship].ship.mil();
+                            if (global[area][ship]['mil'] !== global[area][ship].on * milPerShip){
+                                global[area][ship]['mil'] = global[area][ship].on * milPerShip;
+                            }
+                            if (global.civic.garrison.workers - global.portal.fortress.garrison < 0){
+                                let underflow = global.civic.garrison.workers - global.portal.fortress.garrison;
+                                global[area][ship]['mil'] -= underflow;
+                            }
+                            if (crew_mil + global[area][ship]['mil'] > global.civic.garrison.workers - global.portal.fortress.garrison){
+                                global[area][ship]['mil'] = global.civic.garrison.workers - global.portal.fortress.garrison - crew_mil;
+                            }
+                            if (global[area][ship]['mil'] < 0){
+                                global[area][ship]['mil'] = 0;
+                            }
+                            crew_mil += global[area][ship]['mil'];
                         }
-                        global.civic.crew.assigned = global.civic.crew.workers;
-                        crew_civ += global[area][ship]['crew'];
-                        total += global[area][ship]['crew'];
-                    }
-
-                    if (actions[area][region][ship].ship['mil'] && global[area][ship].hasOwnProperty('mil')){
-                        // All military ships can be crewed instantly
-                        let milPerShip = actions[area][region][ship].ship.mil();
-                        if (global[area][ship]['mil'] !== global[area][ship].on * milPerShip){
-                            global[area][ship]['mil'] = global[area][ship].on * milPerShip;
-                        }
-                        if (global.civic.garrison.workers - global.portal.fortress.garrison < 0){
-                            let underflow = global.civic.garrison.workers - global.portal.fortress.garrison;
-                            global[area][ship]['mil'] -= underflow;
-                        }
-                        if (crew_mil + global[area][ship]['mil'] > global.civic.garrison.workers - global.portal.fortress.garrison){
-                            global[area][ship]['mil'] = global.civic.garrison.workers - global.portal.fortress.garrison - crew_mil;
-                        }
-                        if (global[area][ship]['mil'] < 0){
-                            global[area][ship]['mil'] = 0;
-                        }
-                        crew_mil += global[area][ship]['mil'];
-                    }
-                }
-                else{
-                    if(support_on.hasOwnProperty(ship)){
-                        support_on[ship] = 0;
                     }
                     else{
-                        p_on[ship] = 0;
+                        if(support_on.hasOwnProperty(ship)){
+                            support_on[ship] = 0;
+                        }
+                        else{
+                            p_on[ship] = 0;
+                        }
                     }
-                }
-                let on = (support_on.hasOwnProperty(ship) ? support_on[ship] : (p_on[ship] || 0));
-                if (global[area][ship]['crew'] < global[area][ship].on * actions[area][region][ship].ship.civ() || global[area][ship]['mil'] < global[area][ship].on * actions[area][region][ship].ship.mil() || on < global[area][ship].on){
-                    $(`#galaxy-${ship} .on`).addClass('warn');
-                    $(`#galaxy-${ship} .on`).prop('title',`ON ${on}/${global[area][ship].on}`);
-                }
-                else {
-                    $(`#galaxy-${ship} .on`).removeClass('warn');
-                    $(`#galaxy-${ship} .on`).prop('title',`ON`);
+                    let on = (support_on.hasOwnProperty(ship) ? support_on[ship] : (p_on[ship] || 0));
+                    if (global[area][ship]['crew'] < global[area][ship].on * actions[area][region][ship].ship.civ() || global[area][ship]['mil'] < global[area][ship].on * actions[area][region][ship].ship.mil() || on < global[area][ship].on){
+                        $(`#galaxy-${ship} .on`).addClass('warn');
+                        $(`#galaxy-${ship} .on`).prop('title',`ON ${on}/${global[area][ship].on}`);
+                    }
+                    else {
+                        $(`#galaxy-${ship} .on`).removeClass('warn');
+                        $(`#galaxy-${ship} .on`).prop('title',`ON`);
+                    }
                 }
             }
         }
