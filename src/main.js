@@ -1458,19 +1458,16 @@ function fastLoop(){
                 generated *= 0;
             }
             priority_consume = (consume + ravenous) * time_multiplier;
-            console.log(priority_consume);
         }
 
         let power_grid = 0;
         let max_power = 0;
 
-        //test1
         ["city", ...Object.keys(actions.space), ...Object.keys(actions.interstellar), ...Object.keys(actions.galaxy), ...Object.keys(actions.portal), ...Object.keys(actions.tauceti)].forEach(function(region){
             let space = region === "city" ? region : convertSpaceSector(region);
             let structures = region === "city" ? actions[region] : actions[space][region];
             Object.entries(structures).forEach(function([id, structure]){
                 let building = global[space][id];
-                //todo: stop consumption of intergalactic buildings if stargate is disabled
                 //todo: add exception for starbase/embassy dependent buildings
                 if(building){
                     let title = typeof structure.title === 'string' ? structure.title : structure.title();
@@ -1709,7 +1706,6 @@ function fastLoop(){
             }
         }
         
-        //test3.5
         if(!p_on['s_gate']){ //disable intergalactic buildings if stargate is disabled.
             [...Object.keys(actions.galaxy)].forEach(function(region){
                 Object.entries(actions.galaxy[region]).forEach(function([id]){
@@ -1720,7 +1716,6 @@ function fastLoop(){
             });
         }
 
-        //test3
         // Support providing structures like Moon Bases, Spaceports, Etc
         [
             { a: 'space', r: 'spc_moon', s: 'moon_base', g: 'moon' },
@@ -1768,8 +1763,9 @@ function fastLoop(){
                             global[sup.a][sup.s].s_max += p_on['xfer_station'] * actions.interstellar.int_proxima.xfer_station.support();
                         }
                         break;
-                    case 'galaxy':
+                    case 'gateway':
                         {
+                            global[sup.a][sup.s].s_max += p_on['gateway_station'] * actions.galaxy.gxy_stargate.gateway_station.support();
                             global[sup.a][sup.s].s_max += p_on['telemetry_beacon'] * actions.galaxy.gxy_stargate.telemetry_beacon.support();
                             global[sup.a][sup.s].s_max += p_on['ship_dock'] * actions.galaxy.gxy_gateway.ship_dock.support();
                         }
@@ -1821,6 +1817,20 @@ function fastLoop(){
             }
         });
 
+        //dormitories
+        if (!p_on['embassy']){
+            if(global.galaxy['dormitory']){
+                p_on['dormitory'] = 0;
+                $(`#galaxy-dormitory .on`).addClass('warn');
+                $(`#galaxy-dormitory .on`).prop('title',`ON 0`);
+            }
+            if(global.galaxy['symposium']){
+                p_on['symposium'] = 0;
+                $(`#galaxy-symposium .on`).addClass('warn');
+                $(`#galaxy-symposium .on`).prop('title',`ON 0`);
+            }
+        }
+
         var galaxy_ship_types = [
             {
                 area: 'galaxy',
@@ -1867,8 +1877,8 @@ function fastLoop(){
             let region = galaxy_ship_types[j].region;
             for (let i=0; i<galaxy_ship_types[j].ships.length; i++){
                 let ship = galaxy_ship_types[j].ships[i];
-                //if(ship === "raider"){debugger}
-                if (global[area][ship] && global[area][ship].hasOwnProperty('on')){
+                let req = galaxy_ship_types[j].hasOwnProperty('req') ? (p_on[galaxy_ship_types[j].req] > 0 ? true : false) : true;
+                if (req && global[area][ship] && global[area][ship].hasOwnProperty('on')){
                     if (actions[area][region][ship].ship['civ'] && global[area][ship].hasOwnProperty('crew')){
                         // Civilian ships can only be crewed at a rate of 1 ship (per type) per fast tick
                         let civPerShip = actions[area][region][ship].ship.civ();
@@ -1912,16 +1922,23 @@ function fastLoop(){
                         }
                         crew_mil += global[area][ship]['mil'];
                     }
-                    let on = (support_on.hasOwnProperty(ship) ? support_on[ship] : (p_on[ship] || 0));
-
-                    if (global[area][ship]['crew'] < global[area][ship].on * actions[area][region][ship].ship.civ() || global[area][ship]['mil'] < global[area][ship].on * actions[area][region][ship].ship.mil()){
-                        $(`#galaxy-${ship} .on`).addClass('warn');
-                        $(`#galaxy-${ship} .on`).prop('title',`ON ${on}/${global[area][ship].on}`);
+                }
+                else{
+                    if(support_on.hasOwnProperty(ship)){
+                        support_on[ship] = 0;
                     }
-                    else {
-                        $(`#galaxy-${ship} .on`).removeClass('warn');
-                        $(`#galaxy-${ship} .on`).prop('title',`ON`);
+                    else{
+                        p_on[ship] = 0;
                     }
+                }
+                let on = (support_on.hasOwnProperty(ship) ? support_on[ship] : (p_on[ship] || 0));
+                if (global[area][ship]['crew'] < global[area][ship].on * actions[area][region][ship].ship.civ() || global[area][ship]['mil'] < global[area][ship].on * actions[area][region][ship].ship.mil() || on < global[area][ship].on){
+                    $(`#galaxy-${ship} .on`).addClass('warn');
+                    $(`#galaxy-${ship} .on`).prop('title',`ON ${on}/${global[area][ship].on}`);
+                }
+                else {
+                    $(`#galaxy-${ship} .on`).removeClass('warn');
+                    $(`#galaxy-${ship} .on`).prop('title',`ON`);
                 }
             }
         }
