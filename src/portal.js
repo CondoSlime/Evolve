@@ -774,6 +774,7 @@ const fortressModules = {
                 Coal(){return 100},
                 Oil(){return 80}
             },
+            powered(){return 0},
             power_gen(wiki){
                 let power = 20;
                 let infernal_forges_on = wiki ? (global.portal?.hell_forge?.on ?? 0) : p_on['hell_forge'];
@@ -1367,12 +1368,14 @@ const fortressModules = {
             },
             queue_complete(){ return 0; },
             cost: {},
+            fuel_cost:{
+                Infernite(){return 225}
+            },
             effect(wiki){
-                let fuel = $(this)[0].p_fuel();
-                return `<div>${loc(`portal_oven_desc`)}</div>${global.tech['dish'] === 4 ? `<div class="has-text-special">${loc('portal_oven_desc2')}</div>` : ``}<div class="has-text-caution">${loc('minus_power',[$(this)[0].powered()])}, ${loc('spend', [fuel.a, fuel.r])}</div>`;
+                let fuel = $(this)[0].fuel_cost.Infernite();
+                return `<div>${loc(`portal_oven_desc`)}</div>${global.tech['dish'] === 4 ? `<div class="has-text-special">${loc('portal_oven_desc2')}</div>` : ``}<div class="has-text-caution">${loc('minus_power',[$(this)[0].powered()])}, ${loc('spend', [global.resource.Infernite.name, fuel])}</div>`;
             },
             powered(){ return powerCostMod(3500); },
-            p_fuel(){ return { r: 'Infernite', a: 225 }},
             action(){
                 return false;
             }

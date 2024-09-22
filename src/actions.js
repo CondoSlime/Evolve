@@ -3812,8 +3812,8 @@ export const actions = {
                 Steel(offset){ return costMultiplier('coal_power', offset, 2000, dirt_adjust(1.22)) - 1000; }
             },
             fuel_cost:{
-                Coal(){return global.universe !== "magic" ? 0.35 : 0},
-                Mana(){return global.universe === "magic" ? 0.05 : 0}
+                Coal(){return global.universe !== "magic" && !global.race['environmentalist'] ? 0.35 : 0},
+                Mana(){return global.universe === "magic" && !global.race['environmentalist'] ? 0.05 : 0}
             },
             effect(){
                 let consume = global.universe === "magic" ? $(this)[0].fuel_cost.Mana() : $(this)[0].fuel_cost.Coal();

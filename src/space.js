@@ -448,7 +448,7 @@ const spaceProjects = {
                 Titanium(offset){ return spaceCostMultiplier('spaceport', offset, 22500, 1.32); }
             },
             fuel_cost:{
-                Food(){return global.race['cataclysm'] ? 2 : 25},
+                Food(){return global.race['cataclysm'] || global.race['orbit_decayed'] ? 2 : 25},
                 Helium_3(wiki){return 1.25}
             },
             effect(wiki){
@@ -970,7 +970,7 @@ const spaceProjects = {
                 if (global.race['orbit_decayed'] && !global.race['flier']){
                     desc = desc + `<div>${loc('city_cement_plant_effect1',[jobScale(1)])}</div>`;
                 }
-                let helium = +fuel_adjust($(this)[0].fuel_cost.Helium_3(),true,wiki);
+                let helium = +fuel_adjust($(this)[0].fuel_cost.Helium_3(),true,wiki).toFixed(2);
                 desc = desc + `<div class="has-text-caution">${loc('space_red_factory_effect3',[helium,$(this)[0].powered()])}</div>`;
                 return desc;
             },
@@ -3576,14 +3576,14 @@ const interstellarProjects = {
                     }
                     let gWell = 1 + (global.stats.achieve['escape_velocity'] && global.stats.achieve.escape_velocity['h'] ? global.stats.achieve.escape_velocity['h'] * 0.02 : 0);
                     let output = powerModifier((20 + ((r_mass - 8) * waves) + ((global.interstellar['stellar_engine'] ? global.interstellar.stellar_engine.exotic : 0) * waves * 10)).toFixed(2)) * gWell;*/
-                    let output = $(this)[0].power_gen().toFixed(2);
+                    let output = +($(this)[0].power_gen()).toFixed(2);
                     if (global.tech['blackhole'] >= 5){
                         let exotic = +(global.interstellar.stellar_engine.exotic).toFixed(10);
                         let blackhole = global.interstellar.stellar_engine.exotic > 0 ? loc('interstellar_stellar_engine_effect3',[r_mass,exotic]) : loc('interstellar_stellar_engine_effect2',[r_mass]);
-                        return `<div>${loc('interstellar_stellar_engine_complete',[+output.toFixed(2)])}</div><div>${blackhole}</div>`;
+                        return `<div>${loc('interstellar_stellar_engine_complete',[output])}</div><div>${blackhole}</div>`;
                     }
                     else {
-                        return loc('interstellar_stellar_engine_complete',[+output.toFixed(2)]);
+                        return loc('interstellar_stellar_engine_complete',[output]);
                     }
                 }
             },
@@ -5475,7 +5475,7 @@ const galaxyProjects = {
                 Helium_3(){return 18}
             },
             effect(){
-                let helium = +int_fuel_adjust($(this)[0].fuel_cost.Helum_3()).toFixed(2);
+                let helium = +int_fuel_adjust($(this)[0].fuel_cost.Helium_3()).toFixed(2);
                 //let pirate = piracy('gxy_chthonian');
                 let deuterium = 0.65;
                 let vitreloy = 0.05;
