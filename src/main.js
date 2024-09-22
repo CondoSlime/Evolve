@@ -1148,192 +1148,6 @@ function fastLoop(){
             }
         }
 
-        if (global.city.calendar.season === 0 && global.city.calendar.year > 0){ // Spring
-            let spring = global.race['chilled'] || global.race['smoldering'] ? 0 : 5;
-            morale += spring;
-            global.city.morale.season = spring;
-        }
-        else if (global.city.calendar.season === 1 && global.race['smoldering']){ // Summer
-            morale += traits.smoldering.vars()[0];
-            global.city.morale.season = traits.smoldering.vars()[0];
-        }
-        else if (global.city.calendar.season === 3){ // Winter
-            if (global.race['chilled']){
-                morale += traits.chilled.vars()[0];
-                global.city.morale.season = traits.chilled.vars()[0];
-            }
-            else {
-                morale -= global.race['leathery'] ? traits.leathery.vars()[0] : 5;
-                global.city.morale.season = global.race['leathery'] ? -(traits.leathery.vars()[0]) : -5;
-            }
-        }
-        else {
-            global.city.morale.season = 0;
-        }
-
-        if (global.race['cheese']){
-            let raw_cheese = global.stats.hasOwnProperty('reset') ? global.stats.reset + 1 : 1;
-            let cheese = +(raw_cheese / (raw_cheese + 10) * 11).toFixed(2);
-            morale += cheese;
-        }
-
-        if (global.civic['homeless']){
-            morale -= global.civic.homeless / 2;
-        }
-
-        if (global.tech['vax_c'] || global.tech['vax_f']){
-            morale -= global.tech['vax_c'] ? 10 : 50;
-        }
-        else if (global.tech['vax_s']){
-            morale += 20;
-        }
-
-        if (global.tech['m_boost']){
-            global.city.morale.leadership = 20;
-            morale += 20;
-        }
-        else {
-            global.city.morale.leadership = 0;
-        }
-
-        if (shrineBonusActive()){
-            let shrineMorale = getShrineBonus('morale');
-            global.city.morale.shrine = shrineMorale.add;
-            morale += shrineMorale.add;
-        }
-        else {
-            global.city.morale.shrine = 0;
-        }
-
-        let milVal = govActive('militant',1);
-        if (milVal){
-            morale -= milVal;
-        }
-        if (global.civic.govern.type === 'corpocracy'){
-            morale -= govEffect.corpocracy()[3];
-        }
-        if (global.civic.govern.type === 'republic'){
-            morale += govEffect.republic()[1];
-        }
-        if (global.civic.govern.type === 'federation'){
-            morale += govEffect.federation()[1];
-        }
-
-        if (global.race['blood_thirst'] && global.race.blood_thirst_count >= 1){
-            let blood_thirst = Math.ceil(Math.log2(global.race.blood_thirst_count));
-            global.city.morale.blood_thirst = blood_thirst;
-            morale += blood_thirst;
-        }
-        else {
-            global.city.morale.blood_thirst = 0;
-        }
-
-        let weather_morale = 0;
-        if (global.city.calendar.weather === 0){
-            if (global.city.calendar.temp > 0){
-                if (global.city.calendar.wind === 1){
-                    // Thunderstorm
-                    if (global.race['skittish']){
-                        weather_morale = -(traits.skittish.vars()[0]);
-                    }
-                    else {
-                        weather_morale = global.race['leathery'] ? -(traits.leathery.vars()[0]) : -5;
-                    }
-                }
-                else {
-                    // Rain
-                    weather_morale = global.race['leathery'] ? 0 : -2;
-                }
-            }
-        }
-        else if (global.city.calendar.weather === 2){
-            // Sunny
-            if (global.race['nyctophilia']){
-                weather_morale = -(traits.nyctophilia.vars()[0]);
-            }
-            else if ((global.city.calendar.wind === 0 && global.city.calendar.temp < 2) || (global.city.calendar.wind === 1 && global.city.calendar.temp === 2)){
-                //Still and Not Hot
-                // -or-
-                //Windy and Hot
-                weather_morale = 2;
-            }
-        }
-        else {
-            //Cloudy
-            if (global.race['nyctophilia']){
-                weather_morale = traits.nyctophilia.vars()[1];
-            }
-        }
-        if (global.race['snowy'] && (global.city.calendar.temp !== 0 || global.city.calendar.weather !== 0)){
-            weather_morale -= global.city.calendar.temp >= 2 ? traits.snowy.vars()[1] : traits.snowy.vars()[0];
-        }
-
-        global.city.morale.weather = global.race['submerged'] ? 0 : weather_morale;
-        morale += global.race['submerged'] ? 0 : weather_morale;
-
-        if (global.race['motivated']){
-            let boost = Math.ceil(global.race['motivated'] ** 0.4);
-            morale += boost;
-        }
-
-        if (global.race['pet']){
-            morale += 1;
-        }
-
-        let stress = 0;
-
-        let divisor = 5;
-        global.city.morale.unemployed = 0;
-        if (!global.city.ptrait.includes('mellow')){
-            let unemployed = global.civic.unemployed.workers / (global.race['high_pop'] ? traits.high_pop.vars()[0] : 1);
-            morale -= unemployed;
-            global.city.morale.unemployed = -(unemployed);
-        }
-        else {
-            divisor *= planetTraits.mellow.vars()[0];
-        }
-
-        let vulFathom = fathomCheck('vulpine');
-        if (global.civic.hunter.display && (global.race['playful'] || vulFathom > 0)){
-            let val = 0;
-            if (vulFathom > 0){
-                val += traits.playful.vars(1)[0] * vulFathom;
-            }
-            if (global.race['playful']){
-                val += traits.playful.vars()[0];
-            }
-            morale += global.civic.hunter.workers * val;
-            global.city.morale.unemployed = global.civic.hunter.workers * val;
-        }
-        else {
-            stress -= global.civic.hunter.workers / divisor;
-        }
-
-        if (global.race['optimistic']){
-            stress += traits.optimistic.vars()[0];
-        }
-        let geckoFathom = fathomCheck('gecko');
-        if (geckoFathom > 0){
-            stress += traits.optimistic.vars(1)[0] * geckoFathom;
-        }
-
-        if (global.race['pessimistic']){
-            stress -= traits.pessimistic.vars()[0];
-        }
-
-        if (global.civic['garrison']){
-            let divisor = 2;
-            if (global.city.ptrait.includes('mellow')){
-                divisor *= planetTraits.mellow.vars()[0];
-            }
-            let army_stress = global.civic.garrison.max / divisor;
-            if (global.race['high_pop']){
-                army_stress /= traits.high_pop.vars()[0]
-            }
-
-            stress -= army_stress;
-        }
-
         breakdown.p.consume.Money[loc('trade')] = 0;
 
         // trade routes
@@ -1565,7 +1379,7 @@ function fastLoop(){
             });
         }
 
-        // Food production/consumption
+        // Priority food consumption
         let priority_consume = 0;
         let banquet_consume = 0;
         if (global.resource[global.race.species].amount >= 1 || global.city['farm'] || global.city['soul_well'] || global.city['compost'] || global.city['tourist_center'] || global.city['transmitter']){
@@ -1644,6 +1458,7 @@ function fastLoop(){
                 generated *= 0;
             }
             priority_consume = (consume + ravenous) * time_multiplier;
+            console.log(priority_consume);
         }
 
         let power_grid = 0;
@@ -1664,14 +1479,30 @@ function fastLoop(){
                     }
                     if(structure.hasOwnProperty('fuel_cost')){
                         p_on[id] = building.hasOwnProperty('on') ? building.on : building.count;
-                        if(id === "vitreloy_plant"){
-                            debugger;
+                        if (id === 'lander'){ // Troop Lander
+                            let troopReq = jobScale(3);
+                            if(p_on['fob']){
+                                let total = garrisonSize(false,true);
+                                let deployed = building.on * troopReq;
+                                if (deployed <= total){
+                                    p_on['lander'] = building.on;
+                                }
+                                else {
+                                    p_on['lander'] = Math.floor((total - deployed) / troopReq);
+                                }
+                            }
+                            else{
+                                p_on[id] = 0;
+                            }
+                            if(global.space.fob){
+                                global.space.fob.troops = p_on[id] * troopReq;
+                            }
                         }
                         Object.entries(structure.fuel_cost).forEach(function([name, fuel]){
                             let cost = fuel();
                             if(['Helium_3', 'Oil', 'Deuterium'].includes(name)){
                                 if(space === "space"){
-                                    cost = +fuel_adjust(cost);
+                                    cost = +fuel_adjust(cost, true);
                                 }
                                 if(['interstellar', 'galaxy', 'tauceti'].includes(space)){
                                     cost = +int_fuel_adjust(cost);
@@ -1695,7 +1526,7 @@ function fastLoop(){
                             let cost = fuel();
                             if(['Helium_3', 'Oil', 'Deuterium'].includes(name)){
                                 if(space === "space"){
-                                    cost = +fuel_adjust(cost);
+                                    cost = +fuel_adjust(cost, true);
                                 }
                                 if(['interstellar', 'galaxy', 'tauceti'].includes(space)){
                                     cost = +int_fuel_adjust(cost);
@@ -1990,469 +1821,6 @@ function fastLoop(){
             }
         });
 
-        // Food production/consumption
-        var fed = true;
-        if (global.resource[global.race.species].amount >= 1 || global.city['farm'] || global.city['soul_well'] || global.city['compost'] || global.city['tourist_center'] || global.city['transmitter']){
-            let food_base = 0;
-            let virgo = astroSign === 'virgo' ? 1 + (astroVal('virgo')[0] / 100) : 1;
-
-            if (global.race['artifical']){
-                if (global.city['transmitter']){
-                    food_base = p_on['transmitter'] * production('transmitter') * production('psychic_boost','Food');
-                    breakdown.p['Food'][loc('city_transmitter')] = food_base + 'v';
-                    global.city.transmitter['lpmod'] = production('transmitter') * global_multiplier * production('psychic_boost','Food');
-                }
-            }
-            else {
-                if (global.race['detritivore']){
-                    if (global.city['compost']){
-                        let operating = p_on['compost'];
-                        let c_factor = traits.detritivore.vars()[0] / 100;
-                        let food_compost = operating * (1.2 + (global.tech['compost'] * c_factor));
-                        food_compost *= global.city.biome === 'grassland' ? biomes.grassland.vars()[0] : 1;
-                        food_compost *= global.city.biome === 'savanna' ? biomes.savanna.vars()[0] : 1;
-                        food_compost *= global.city.biome === 'ashland' ? biomes.ashland.vars()[0] : 1;
-                        food_compost *= global.city.biome === 'volcanic' ? biomes.volcanic.vars()[0] : 1;
-                        food_compost *= global.city.biome === 'hellscape' ? biomes.hellscape.vars()[0] : 1;
-                        food_compost *= global.city.ptrait.includes('trashed') ? planetTraits.trashed.vars()[0] : 1;
-                        food_compost *= production('psychic_boost','Food');
-                        breakdown.p['Food'][loc('city_compost_heap')] = food_compost + 'v';
-                        food_base += food_compost;
-                    }
-                }
-                else if (global.race['carnivore'] || global.race['soul_eater']){
-                    let strength = weaponTechModifer();
-                    let food_hunt = workerScale(global.civic.hunter.workers,'hunter');
-                    food_hunt *= racialTrait(food_hunt,'hunting');
-                    if (global.race['servants']){
-                        let serve_hunt = global.race.servants.jobs.hunter;
-                        serve_hunt *= servantTrait(global.race.servants.jobs.hunter,'hunting');
-                        food_hunt += serve_hunt;
-                    }
-                    food_hunt *= strength * (global.race['carnivore'] ? 2 : 0.5);
-                    if (global.race['ghostly']){
-                        food_hunt *= 1 + (traits.ghostly.vars()[0] / 100);
-                    }
-                    food_hunt *= production('psychic_boost','Food');
-                    breakdown.p['Food'][loc(global.race['unfathomable'] ? 'job_raider' : 'job_hunter')] = food_hunt + 'v';
-
-                    if (global.race['carnivore'] && global.city['lodge'] && food_hunt > 0){
-                        food_hunt *= 1 + (global.city.lodge.count / 20);
-                        breakdown.p['Food'][`ᄂ${loc('city_lodge')}`] = (global.city.lodge.count * 5) + '%';
-                    }
-
-                    if (global.city['soul_well']){
-                        let souls = global.city['soul_well'].count * (global.race['ghostly'] ? (2 + traits.ghostly.vars()[1]) : 2);
-                        food_hunt += souls * production('psychic_boost','Food');
-                        breakdown.p['Food'][loc('city_soul_well')] = souls + 'v';
-                    }
-                    food_base += food_hunt;
-                }
-                else if (global.race['unfathomable']){
-                    if (global.city['captive_housing']){
-                        let strength = weaponTechModifer();
-                        let hunt = workerScale(global.civic.hunter.workers,'hunter')
-                        hunt *= racialTrait(hunt,'hunting') * strength;
-                        if (global.race['servants']){
-                            let serve_hunt = global.race.servants.jobs.hunter * strength;
-                            serve_hunt *= servantTrait(global.race.servants.jobs.hunter,'hunting');
-                            hunt += serve_hunt;
-                        }
-                        let minHunt = hunt * 0.008;
-
-                        if (global.city.captive_housing.cattle < global.city.captive_housing.cattleCap && hunt > 0){
-                            hunt -= Math.round(global.city.captive_housing.cattle ** 1.25);
-                            if (hunt < minHunt){ hunt = minHunt; }
-                            global.city.captive_housing.cattleCatch += hunt * time_multiplier;
-                            if (global.city.captive_housing.cattleCatch >= global.city.captive_housing.cattle ** 2){
-                                global.city.captive_housing.cattle++;
-                                global.city.captive_housing.cattleCatch = 0;
-                            }
-                            if (global.city.captive_housing.cattle > 0 && global.resource.Food.amount < global.resource.Food.max * 0.01){
-                                global.city.captive_housing.cattle--;
-                                modRes('Food', 1000, true);
-                                global.stats.cattle++;
-                            }
-                        }
-
-                        if (global.city.captive_housing.cattle > 0){
-                            let food = global.city.captive_housing.cattle / 3 * production('psychic_boost','Food');
-                            breakdown.p['Food'][loc('city_captive_housing_cattle_bd')] = food + 'v';
-                            food_base += food;
-                        }
-                    }
-                }
-                else if (global.city['farm'] || global.race['forager']) {
-                    let weather_multiplier = 1;
-                    if (!global.race['submerged']){
-                        if (global.city.calendar.temp === 0){
-                            if (global.city.calendar.weather === 0){
-                                weather_multiplier *= global.race['chilled'] ? (1 + traits.chilled.vars()[3] / 100) : 0.7;
-                            }
-                            else {
-                                weather_multiplier *= global.race['chilled'] ? (1 + traits.chilled.vars()[4] / 100) : 0.85;
-                            }
-                        }
-                        if (global.city.calendar.weather === 2){
-                            weather_multiplier *= global.race['chilled'] ? (1 - traits.chilled.vars()[5] / 100) : 1.1;
-                        }
-                    }
-
-                    if (global.race['forager']){
-                        let forage = 1 + (global.tech['foraging'] ? 0.75 * global.tech['foraging'] : 0);
-                        let foragers = workerScale(global.civic.forager.workers,'forager');
-                        if (global.race['servants']){
-                            let serve = global.race.servants.jobs.forager;
-                            serve *= servantTrait(global.race.servants.jobs.forager,'forager');
-                            foragers += serve;
-                        }
-                        let food_forage = foragers * forage * 0.35;
-                        breakdown.p['Food'][loc('job_forager')] = food_forage + 'v';
-                        food_base += food_forage;
-                    }
-
-                    if (global.city['farm']){
-                        let farmers = workerScale(global.civic.farmer.workers,'farmer');
-                        let farmhands = 0;
-                        if (farmers > jobScale(global.city.farm.count)){
-                            farmhands = farmers - jobScale(global.city.farm.count);
-                            farmers = jobScale(global.city.farm.count);
-                        }
-                        let food = (farmers * farmerValue(true)) + (farmhands * farmerValue(false));
-
-                        if (global.race['servants']){
-                            let servants = global.race.servants.jobs.farmer;
-                            let servehands = 0;
-                            let open = global.city.farm.count - (farmers / (global.race['high_pop'] ? traits.high_pop.vars()[0] : 1));
-                            if (servants > open){
-                                servehands = servants - open;
-                                servants = open;
-                            }
-                            food += (servants * farmerValue(true,true)) + (servehands * farmerValue(false,true));
-                        }
-
-                        let mill_multiplier = 1;
-                        if (global.city['mill']){
-                            let mill_bonus = global.tech['agriculture'] >= 5 ? 0.05 : 0.03;
-                            let working = global.city['mill'].count - global.city['mill'].on;
-                            mill_multiplier += (working * mill_bonus);
-                        }
-
-                        breakdown.p['Food'][loc('job_farmer')] = (food) + 'v';
-                        food_base += (food * virgo * weather_multiplier * mill_multiplier * q_multiplier * production('psychic_boost','Food'));
-
-                        if (food > 0){
-                            breakdown.p['Food'][`ᄂ${loc('city_mill_title1')}`] = ((mill_multiplier - 1) * 100) + '%';
-                            breakdown.p['Food'][`ᄂ${loc('sign_virgo')}+0`] = ((virgo - 1) * 100) + '%';
-                            breakdown.p['Food'][`ᄂ${loc('morale_weather')}`] = ((weather_multiplier - 1) * 100) + '%';
-                            breakdown.p['Food'][`ᄂ${loc('quarantine')}+0`] = ((q_multiplier - 1) * 100) + '%';
-                        }
-                    }
-                }
-            }
-
-            if (global.tauceti['tau_farm'] && p_on['tau_farm']){
-                let colony_val = 1 + ((support_on['colony'] || 0) * 0.5);
-                let food_base = production('tau_farm','food') * p_on['tau_farm'] * production('psychic_boost','Food');
-                let delta = food_base * global_multiplier * colony_val;
-
-                breakdown.p['Food'][loc('tau_home_tau_farm')] = food_base + 'v';
-                if (food_base > 0){
-                    breakdown.p['Food'][`ᄂ${loc('tau_home_colony')}`] = ((colony_val - 1) * 100) + '%';
-                }
-
-                modRes('Food', delta * time_multiplier);
-            }
-
-            let hunting = 0;
-            if (global.tech['military']){
-                hunting = (global.race['herbivore'] && !global.race['carnivore']) || global.race['artifical'] ? 0 : armyRating(garrisonSize(),'hunting') / 3;
-                hunting *= production('psychic_boost','Food');
-            }
-
-            let biodome = 0;
-            let red_synd = syndicate('spc_red');
-            if (global.tech['mars']){
-                biodome = support_on['biodome'] * workerScale(global.civic.colonist.workers,'colonist') * production('biodome','food') * production('psychic_boost','Food');
-                if (global.race['cataclysm'] || global.race['orbit_decayed']){
-                    biodome += support_on['biodome'] * production('biodome','cat_food') * production('psychic_boost','Food');
-                }
-            }
-
-            breakdown.p['Food'][actions.space.spc_red.biodome.title()] = biodome + 'v';
-            if (biodome > 0){
-                breakdown.p['Food'][`ᄂ${loc('space_syndicate')}+0`] = -((1 - red_synd) * 100) + '%';
-                breakdown.p['Food'][`ᄂ${loc('space_red_ziggurat_title')}+0`] = ((zigVal - 1) * 100) + '%';
-                breakdown.p['Food'][`ᄂ${loc('sign_virgo')}+0`] = ((virgo - 1) * 100) + '%';
-            }
-            let generated = food_base + (hunting * q_multiplier) + (biodome * red_synd * zigVal * virgo);
-            generated *= global_multiplier;
-
-            breakdown.p['Food'][loc('soldiers')] = hunting + 'v';
-            if (hunting > 0){
-                breakdown.p['Food'][`ᄂ${loc('quarantine')}+1`] = ((q_multiplier - 1) * 100) + '%';
-            }
-            if(global.race['fasting']){
-                breakdown.p['Food'][`${loc('evo_challenge_fasting')}`] = '-100%';
-                generated *= 0;
-            }
-
-            let delta = generated - priority_consume;
-            console.log(generated, priority_consume);
-            if (!modRes('Food', delta * time_multiplier) || global.race['fasting']){
-                if (global.race['anthropophagite'] && global.resource[global.race.species].amount > 1 && !global.race['fasting']){
-                    global.resource[global.race.species].amount--;
-                    modRes('Food', 10000 * traits.anthropophagite.vars()[0]);
-                    global.stats.murders++;
-                }
-                else {
-                    fed = false;
-                    if(global.resource[global.race.species].amount > 0){
-                        let threshold = 1.25;
-                        let digestion = 0;
-                        let humpback = 0;
-                        let meditators = 0;
-                        let atrophy = 0;
-                        let infusion = 1;
-                        if (global.race['slow_digestion']){
-                            digestion += traits.slow_digestion.vars()[0];
-                        }
-                        let fathom = fathomCheck('slitheryn');
-                        if (fathom > 0){
-                            digestion += traits.slow_digestion.vars(1)[0] * fathom;
-                        }
-                        if (global.race['humpback']){
-                            humpback = traits.humpback.vars()[0];
-                        }
-                        if(global.race['fasting']){
-                            meditators = highPopAdjust(global.civic.meditator.workers) * 0.03;
-                        }
-                        if (global.race['atrophy']){
-                            atrophy = traits.atrophy.vars()[0];
-                        }
-                        if(global.portal['dish_life_infuser'] && global.portal['dish_life_infuser'].on){
-                            infusion = 0.95 ** global.portal['dish_life_infuser'].on;
-                        }
-                        threshold += digestion + humpback + meditators;
-                        threshold -= atrophy;
-                        threshold *= infusion
-                        if(global.race['fasting']){
-                            let base = global.resource[global.race.species].amount/100;
-                            //starvation resistance tooltip for fasting
-                            breakdown.p.consume[global.race.species][global.resource[global.race.species].name] = -(base).toFixed(2);
-                            breakdown.p.consume[global.race.species][loc('genelab_traits')] = (1 - food_consume_mod) * (base).toFixed(2);
-                            breakdown.p.consume[global.race.species][loc('Threshold')] = (threshold).toFixed(2);
-                            global.resource[global.race.species].delta = -(base * food_consume_mod - threshold) * time_multiplier;
-                        }
-                        // threshold can be thought of as the inverse of nutrition ratio per unit of food.
-                        // So if the generated food doesn't have enough nutrition for the consuming population, they starve.
-                        if (Math.rand(0, 10) === 0){
-                            if(global.race['fasting']){
-                                let starved = (global.resource[global.race.species].amount) / 100 * food_consume_mod - threshold;
-                                if(starved < 0){
-                                    starved = 0;
-                                }
-                                if(starved%1 > Math.random()){
-                                    starved = Math.ceil(starved);
-                                }
-                                else{
-                                    starved = Math.floor(starved);
-                                }
-                                if(starved > global.resource[global.race.species].amount){
-                                    starved = global.resource[global.race.species].amount;
-                                }
-                                global.resource[global.race.species].amount -= starved;
-                                global.stats.starved += starved;
-                            }
-                            else if (generated < consume / threshold){
-                                global['resource'][global.race.species].amount--;
-                                global.stats.starved++;
-                            }
-                        }
-                    }
-                }
-            }
-            if(banquet_consume >= global.resource.Food.amount){
-                global.city.banquet.strength = 0;
-            }
-            else if(banquet_consume > 1){
-                breakdown.p.consume.Food[`${loc('city_banquet')}`] = -(feast);
-            }
-
-            if (global.race['anthropophagite'] && global.resource[global.race.species].amount > 1 && Math.rand(0,400) === 0){
-                global.resource[global.race.species].amount--;
-                modRes('Food', 10000 * traits.anthropophagite.vars()[0]);
-                global.stats.murders++;
-            }
-        }
-
-
-        // Uranium
-        if (!global.race['environmentalist'] && global.race.universe !== 'magic' && global.tech['uranium'] && global.tech['uranium'] >= 3 && p_on['coal_power']){
-            let coal = p_on['coal_power'] * 0.35 * production('psychic_boost','Uranium');
-            breakdown.p['Uranium'][loc('city_coal_ash')] = (coal / 65 / global_multiplier);
-            modRes('Uranium', (coal * time_multiplier) / 65);
-        }
-
-        if (global.race['replicator']){
-            global.city['replicator'] = { count: global.race.replicator.pow, on: global.race.replicator.pow };
-        }
-
-        // Mass Relay charging
-        if (global.space['m_relay']){
-            if (p_on['m_relay']){
-                if (global.space.m_relay.charged < 10000){
-                    global.space.m_relay.charged++;
-                }
-            }
-            else {
-                global.space.m_relay.charged = 0;
-            }
-        }
-        // Troop Lander
-        if (global.space['fob'] && global.space['lander']){
-            if (p_on['fob']){
-
-                let total = garrisonSize(false,true);
-                let troopReq = jobScale(3);
-                let deployed = p_on['lander'] * troopReq;
-                if (deployed <= total){
-                    global.space.fob.troops = deployed;
-                }
-                else {
-                    p_on['lander'] -= Math.ceil((deployed - total) / troopReq);
-                    global.space.fob.troops = p_on['lander'] * troopReq;
-                }
-
-                if (p_on['lander'] !== global.space.lander.on){
-                    $(`#space-lander .on`).addClass('warn');
-                    $(`#space-lander .on`).prop('title',`ON ${p_on['lander']}/${global.space.lander.on}`);
-                }
-            }
-            else {
-                global.space.fob.troops = 0;
-                $(`#space-lander .on`).addClass('warn');
-                $(`#space-lander .on`).prop('title',`ON 0/${global.space.lander.on}`);
-            }
-        }
-
-        /*if(global.race['fasting']){
-            const foodBuildings = ["city:tourist_center", "space:spaceport", "int_:starport", "gxy_:starbase", "space:space_barracks", "int_:zoo"];
-            //ignored buildings: "space:space_station", "space:embassy"
-            //titan quarters is excluded but not necessary because the scenario is incompatible with true path.
-            //some buildings are excluded to make progression not impossible.
-            for(let i=0;i<foodBuildings.length;i++){
-                let parts = foodBuildings[i].split(":");
-                let space = convertSpaceSector(parts[0]);
-                let region = parts[0] === 'city' ? parts[0] : space;
-                if (global[region][parts[1]] && global[region][parts[1]]['on']){
-                    if(p_on[parts[1]]){
-                        p_on[parts[1]] = 0;
-                    }
-                    $(`#${region}-${parts[1]} .on`).addClass('warn');
-                    $(`#${region}-${parts[1]} .on`).prop('title',`ON 0`);
-                }else {
-                    $(`#${region}-${parts[1]} .on`).removeClass('warn');
-                    $(`#${region}-${parts[1]} .on`).prop('title',`ON`);
-                }
-            }
-            global.civic.meditator.display = true;
-        }*/
-
-        let womling_technician = 1;
-        if (global.tech['womling_technicians']){
-            womling_technician = 1 + (p_on['womling_station'] * (global.tech['isolation'] ? 0.30 : 0.08));
-            if (global.tech['womling_gene']){
-                womling_technician *= 1.25;
-            }
-        }
-
-        // Droids
-        let miner_droids = {
-            adam: 0,
-            uran: 0,
-            coal: 0,
-            alum: 0,
-        };
-
-        if (global.interstellar['starport']){
-            if (global.interstellar.hasOwnProperty('mining_droid') && global.interstellar.mining_droid.count > 0){
-                let on_droid = support_on['mining_droid'];
-                let max_droid = global.interstellar.mining_droid.on;
-                let eff = max_droid > 0 ? on_droid / max_droid : 0;
-                let remaining = max_droid;
-
-                ['adam','uran','coal','alum'].forEach(function(res){
-                    remaining -= global.interstellar.mining_droid[res];
-                    if (remaining < 0) {
-                        global.interstellar.mining_droid[res] += remaining;
-                        remaining = 0;
-                    }
-                    miner_droids[res] = global.interstellar.mining_droid[res] * eff;
-                });
-            }
-        }
-
-        // Guard Post
-        if (global.portal['guard_post']){
-            global.portal.guard_post.s_max = global.portal.guard_post.count * actions.portal.prtl_ruins.guard_post.support();
-
-            if (global.portal.guard_post.on > 0){
-                let army = global.portal.fortress.garrison - (global.portal.fortress.patrols * global.portal.fortress.patrol_size);
-                if (p_on['soul_forge']){
-                    let forge = soulForgeSoldiers();
-                    if (forge <= army){
-                        army -= forge;
-                    }
-                }
-                if (army < jobScale(p_on['guard_post'])){
-                    p_on['guard_post'] = Math.floor(army / jobScale(1));
-                    global.portal['guard_post'].on = p_on['guard_post'];
-                }
-            }
-
-            global.portal.guard_post.support = p_on['guard_post'];
-        }
-
-
-        // Graphene Hack
-        if (global.tech['isolation'] && global.race['truepath']){
-            support_on['g_factory'] = p_on['refueling_station'];
-            global.space.g_factory.count = global.tauceti.refueling_station.count;
-            global.space.g_factory.on = global.tauceti.refueling_station.on;
-        }
-
-        if (global.race['replicator'] && p_on['replicator']){
-            let res = global.race.replicator.res;
-            let vol = replicator(res,p_on['replicator']);
-            breakdown.p.consume[res][loc('tau_replicator_db')] = vol;
-            modRes(res, time_multiplier * vol);
-        }
-
-        // Stargate
-        if (p_on['s_gate']){
-            if (!global.settings.showGalactic){
-                global.settings.showGalactic = true;
-                global.settings.space.stargate = true;
-                renderSpace();
-            }
-        }
-        else {
-            global.settings.showGalactic = false;
-            global.settings.space.stargate = false;
-        }
-
-        // Ship Yard
-        if (p_on['shipyard']){
-            global.settings.showShipYard = true;
-        }
-        else {
-            global.settings.showShipYard = false;
-            if (global.settings.govTabs === 5){
-                global.settings.govTabs = 0;
-            }
-        }
-
         var galaxy_ship_types = [
             {
                 area: 'galaxy',
@@ -2570,6 +1938,7 @@ function fastLoop(){
             global.civic.garrison.crew = crew_mil;
         }
 
+        let stress = 0;
         // Detect labor anomalies
         Object.keys(job_desc).forEach(function (job) {
             if (global.civic[job]){
@@ -2606,11 +1975,11 @@ function fastLoop(){
                     if (global.race['sky_lover'] && ['miner','coal_miner','crystal_miner','pit_miner'].includes(job)){
                         workers *= 1 + (traits.sky_lover.vars()[0] / 100);
                     }
-
                     stress -= workers / stress_level;
                 }
             }
         });
+
         global.civic[global.civic.d_job].workers += global.resource[global.race.species].amount - total;
         if (global.civic[global.civic.d_job].workers < 0){
             global.civic[global.civic.d_job].workers = 0;
@@ -2622,6 +1991,189 @@ function fastLoop(){
                 global.civic[global.civic.d_job].workers--;
             }
         });
+
+        if (global.city.calendar.season === 0 && global.city.calendar.year > 0){ // Spring
+            let spring = global.race['chilled'] || global.race['smoldering'] ? 0 : 5;
+            morale += spring;
+            global.city.morale.season = spring;
+        }
+        else if (global.city.calendar.season === 1 && global.race['smoldering']){ // Summer
+            morale += traits.smoldering.vars()[0];
+            global.city.morale.season = traits.smoldering.vars()[0];
+        }
+        else if (global.city.calendar.season === 3){ // Winter
+            if (global.race['chilled']){
+                morale += traits.chilled.vars()[0];
+                global.city.morale.season = traits.chilled.vars()[0];
+            }
+            else {
+                morale -= global.race['leathery'] ? traits.leathery.vars()[0] : 5;
+                global.city.morale.season = global.race['leathery'] ? -(traits.leathery.vars()[0]) : -5;
+            }
+        }
+        else {
+            global.city.morale.season = 0;
+        }
+
+        if (global.race['cheese']){
+            let raw_cheese = global.stats.hasOwnProperty('reset') ? global.stats.reset + 1 : 1;
+            let cheese = +(raw_cheese / (raw_cheese + 10) * 11).toFixed(2);
+            morale += cheese;
+        }
+
+        if (global.civic['homeless']){
+            morale -= global.civic.homeless / 2;
+        }
+
+        if (global.tech['vax_c'] || global.tech['vax_f']){
+            morale -= global.tech['vax_c'] ? 10 : 50;
+        }
+        else if (global.tech['vax_s']){
+            morale += 20;
+        }
+
+        if (global.tech['m_boost']){
+            global.city.morale.leadership = 20;
+            morale += 20;
+        }
+        else {
+            global.city.morale.leadership = 0;
+        }
+
+        if (shrineBonusActive()){
+            let shrineMorale = getShrineBonus('morale');
+            global.city.morale.shrine = shrineMorale.add;
+            morale += shrineMorale.add;
+        }
+        else {
+            global.city.morale.shrine = 0;
+        }
+
+        let milVal = govActive('militant',1);
+        if (milVal){
+            morale -= milVal;
+        }
+        if (global.civic.govern.type === 'corpocracy'){
+            morale -= govEffect.corpocracy()[3];
+        }
+        if (global.civic.govern.type === 'republic'){
+            morale += govEffect.republic()[1];
+        }
+        if (global.civic.govern.type === 'federation'){
+            morale += govEffect.federation()[1];
+        }
+
+        if (global.race['blood_thirst'] && global.race.blood_thirst_count >= 1){
+            let blood_thirst = Math.ceil(Math.log2(global.race.blood_thirst_count));
+            global.city.morale.blood_thirst = blood_thirst;
+            morale += blood_thirst;
+        }
+        else {
+            global.city.morale.blood_thirst = 0;
+        }
+
+        let weather_morale = 0;
+        if (global.city.calendar.weather === 0){
+            if (global.city.calendar.temp > 0){
+                if (global.city.calendar.wind === 1){
+                    // Thunderstorm
+                    if (global.race['skittish']){
+                        weather_morale = -(traits.skittish.vars()[0]);
+                    }
+                    else {
+                        weather_morale = global.race['leathery'] ? -(traits.leathery.vars()[0]) : -5;
+                    }
+                }
+                else {
+                    // Rain
+                    weather_morale = global.race['leathery'] ? 0 : -2;
+                }
+            }
+        }
+        else if (global.city.calendar.weather === 2){
+            // Sunny
+            if (global.race['nyctophilia']){
+                weather_morale = -(traits.nyctophilia.vars()[0]);
+            }
+            else if ((global.city.calendar.wind === 0 && global.city.calendar.temp < 2) || (global.city.calendar.wind === 1 && global.city.calendar.temp === 2)){
+                //Still and Not Hot
+                // -or-
+                //Windy and Hot
+                weather_morale = 2;
+            }
+        }
+        else {
+            //Cloudy
+            if (global.race['nyctophilia']){
+                weather_morale = traits.nyctophilia.vars()[1];
+            }
+        }
+        if (global.race['snowy'] && (global.city.calendar.temp !== 0 || global.city.calendar.weather !== 0)){
+            weather_morale -= global.city.calendar.temp >= 2 ? traits.snowy.vars()[1] : traits.snowy.vars()[0];
+        }
+
+        global.city.morale.weather = global.race['submerged'] ? 0 : weather_morale;
+        morale += global.race['submerged'] ? 0 : weather_morale;
+
+        if (global.race['motivated']){
+            let boost = Math.ceil(global.race['motivated'] ** 0.4);
+            morale += boost;
+        }
+
+        if (global.race['pet']){
+            morale += 1;
+        }
+
+        let divisor = 5;
+        global.city.morale.unemployed = 0;
+        if (!global.city.ptrait.includes('mellow')){
+            let unemployed = global.civic.unemployed.workers / (global.race['high_pop'] ? traits.high_pop.vars()[0] : 1);
+            morale -= unemployed;
+            global.city.morale.unemployed = -(unemployed);
+        }
+        else {
+            divisor *= planetTraits.mellow.vars()[0];
+        }
+
+        let vulFathom = fathomCheck('vulpine');
+        if (global.civic.hunter.display && (global.race['playful'] || vulFathom > 0)){
+            let val = 0;
+            if (vulFathom > 0){
+                val += traits.playful.vars(1)[0] * vulFathom;
+            }
+            if (global.race['playful']){
+                val += traits.playful.vars()[0];
+            }
+            morale += global.civic.hunter.workers * val;
+            global.city.morale.unemployed = global.civic.hunter.workers * val;
+        }
+        else {
+            stress -= global.civic.hunter.workers / divisor;
+        }
+
+        if (global.race['optimistic']){
+            stress += traits.optimistic.vars()[0];
+        }
+        let geckoFathom = fathomCheck('gecko');
+        if (geckoFathom > 0){
+            stress += traits.optimistic.vars(1)[0] * geckoFathom;
+        }
+
+        if (global.race['pessimistic']){
+            stress -= traits.pessimistic.vars()[0];
+        }
+
+        if (global.civic['garrison']){
+            let divisor = 2;
+            if (global.city.ptrait.includes('mellow')){
+                divisor *= planetTraits.mellow.vars()[0];
+            }
+            let army_stress = global.civic.garrison.max / divisor;
+            if (global.race['high_pop']){
+                army_stress /= traits.high_pop.vars()[0]
+            }
+            stress -= army_stress;
+        }
 
         let entertainment = 0;
         if (global.tech['theatre']){
@@ -2853,6 +2405,443 @@ function fastLoop(){
             global_multiplier *= moon;
         }
 
+
+        // Food production/consumption
+        var fed = true;
+        if (global.resource[global.race.species].amount >= 1 || global.city['farm'] || global.city['soul_well'] || global.city['compost'] || global.city['tourist_center'] || global.city['transmitter']){
+            let food_base = 0;
+            let virgo = astroSign === 'virgo' ? 1 + (astroVal('virgo')[0] / 100) : 1;
+
+            if (global.race['artifical']){
+                if (global.city['transmitter']){
+                    food_base = p_on['transmitter'] * production('transmitter') * production('psychic_boost','Food');
+                    breakdown.p['Food'][loc('city_transmitter')] = food_base + 'v';
+                    global.city.transmitter['lpmod'] = production('transmitter') * global_multiplier * production('psychic_boost','Food');
+                }
+            }
+            else {
+                if (global.race['detritivore']){
+                    if (global.city['compost']){
+                        let operating = p_on['compost'];
+                        let c_factor = traits.detritivore.vars()[0] / 100;
+                        let food_compost = operating * (1.2 + (global.tech['compost'] * c_factor));
+                        food_compost *= global.city.biome === 'grassland' ? biomes.grassland.vars()[0] : 1;
+                        food_compost *= global.city.biome === 'savanna' ? biomes.savanna.vars()[0] : 1;
+                        food_compost *= global.city.biome === 'ashland' ? biomes.ashland.vars()[0] : 1;
+                        food_compost *= global.city.biome === 'volcanic' ? biomes.volcanic.vars()[0] : 1;
+                        food_compost *= global.city.biome === 'hellscape' ? biomes.hellscape.vars()[0] : 1;
+                        food_compost *= global.city.ptrait.includes('trashed') ? planetTraits.trashed.vars()[0] : 1;
+                        food_compost *= production('psychic_boost','Food');
+                        breakdown.p['Food'][loc('city_compost_heap')] = food_compost + 'v';
+                        food_base += food_compost;
+                    }
+                }
+                else if (global.race['carnivore'] || global.race['soul_eater']){
+                    let strength = weaponTechModifer();
+                    let food_hunt = workerScale(global.civic.hunter.workers,'hunter');
+                    food_hunt *= racialTrait(food_hunt,'hunting');
+                    if (global.race['servants']){
+                        let serve_hunt = global.race.servants.jobs.hunter;
+                        serve_hunt *= servantTrait(global.race.servants.jobs.hunter,'hunting');
+                        food_hunt += serve_hunt;
+                    }
+                    food_hunt *= strength * (global.race['carnivore'] ? 2 : 0.5);
+                    if (global.race['ghostly']){
+                        food_hunt *= 1 + (traits.ghostly.vars()[0] / 100);
+                    }
+                    food_hunt *= production('psychic_boost','Food');
+                    breakdown.p['Food'][loc(global.race['unfathomable'] ? 'job_raider' : 'job_hunter')] = food_hunt + 'v';
+
+                    if (global.race['carnivore'] && global.city['lodge'] && food_hunt > 0){
+                        food_hunt *= 1 + (global.city.lodge.count / 20);
+                        breakdown.p['Food'][`ᄂ${loc('city_lodge')}`] = (global.city.lodge.count * 5) + '%';
+                    }
+
+                    if (global.city['soul_well']){
+                        let souls = global.city['soul_well'].count * (global.race['ghostly'] ? (2 + traits.ghostly.vars()[1]) : 2);
+                        food_hunt += souls * production('psychic_boost','Food');
+                        breakdown.p['Food'][loc('city_soul_well')] = souls + 'v';
+                    }
+                    food_base += food_hunt;
+                }
+                else if (global.race['unfathomable']){
+                    if (global.city['captive_housing']){
+                        let strength = weaponTechModifer();
+                        let hunt = workerScale(global.civic.hunter.workers,'hunter')
+                        hunt *= racialTrait(hunt,'hunting') * strength;
+                        if (global.race['servants']){
+                            let serve_hunt = global.race.servants.jobs.hunter * strength;
+                            serve_hunt *= servantTrait(global.race.servants.jobs.hunter,'hunting');
+                            hunt += serve_hunt;
+                        }
+                        let minHunt = hunt * 0.008;
+
+                        if (global.city.captive_housing.cattle < global.city.captive_housing.cattleCap && hunt > 0){
+                            hunt -= Math.round(global.city.captive_housing.cattle ** 1.25);
+                            if (hunt < minHunt){ hunt = minHunt; }
+                            global.city.captive_housing.cattleCatch += hunt * time_multiplier;
+                            if (global.city.captive_housing.cattleCatch >= global.city.captive_housing.cattle ** 2){
+                                global.city.captive_housing.cattle++;
+                                global.city.captive_housing.cattleCatch = 0;
+                            }
+                            if (global.city.captive_housing.cattle > 0 && global.resource.Food.amount < global.resource.Food.max * 0.01){
+                                global.city.captive_housing.cattle--;
+                                modRes('Food', 1000, true);
+                                global.stats.cattle++;
+                            }
+                        }
+
+                        if (global.city.captive_housing.cattle > 0){
+                            let food = global.city.captive_housing.cattle / 3 * production('psychic_boost','Food');
+                            breakdown.p['Food'][loc('city_captive_housing_cattle_bd')] = food + 'v';
+                            food_base += food;
+                        }
+                    }
+                }
+                else if (global.city['farm'] || global.race['forager']) {
+                    let weather_multiplier = 1;
+                    if (!global.race['submerged']){
+                        if (global.city.calendar.temp === 0){
+                            if (global.city.calendar.weather === 0){
+                                weather_multiplier *= global.race['chilled'] ? (1 + traits.chilled.vars()[3] / 100) : 0.7;
+                            }
+                            else {
+                                weather_multiplier *= global.race['chilled'] ? (1 + traits.chilled.vars()[4] / 100) : 0.85;
+                            }
+                        }
+                        if (global.city.calendar.weather === 2){
+                            weather_multiplier *= global.race['chilled'] ? (1 - traits.chilled.vars()[5] / 100) : 1.1;
+                        }
+                    }
+
+                    if (global.race['forager']){
+                        let forage = 1 + (global.tech['foraging'] ? 0.75 * global.tech['foraging'] : 0);
+                        let foragers = workerScale(global.civic.forager.workers,'forager');
+                        if (global.race['servants']){
+                            let serve = global.race.servants.jobs.forager;
+                            serve *= servantTrait(global.race.servants.jobs.forager,'forager');
+                            foragers += serve;
+                        }
+                        let food_forage = foragers * forage * 0.35;
+                        breakdown.p['Food'][loc('job_forager')] = food_forage + 'v';
+                        food_base += food_forage;
+                    }
+
+                    if (global.city['farm']){
+                        let farmers = workerScale(global.civic.farmer.workers,'farmer');
+                        let farmhands = 0;
+                        if (farmers > jobScale(global.city.farm.count)){
+                            farmhands = farmers - jobScale(global.city.farm.count);
+                            farmers = jobScale(global.city.farm.count);
+                        }
+                        let food = (farmers * farmerValue(true)) + (farmhands * farmerValue(false));
+
+                        if (global.race['servants']){
+                            let servants = global.race.servants.jobs.farmer;
+                            let servehands = 0;
+                            let open = global.city.farm.count - (farmers / (global.race['high_pop'] ? traits.high_pop.vars()[0] : 1));
+                            if (servants > open){
+                                servehands = servants - open;
+                                servants = open;
+                            }
+                            food += (servants * farmerValue(true,true)) + (servehands * farmerValue(false,true));
+                        }
+
+                        let mill_multiplier = 1;
+                        if (global.city['mill']){
+                            let mill_bonus = global.tech['agriculture'] >= 5 ? 0.05 : 0.03;
+                            let working = global.city['mill'].count - global.city['mill'].on;
+                            mill_multiplier += (working * mill_bonus);
+                        }
+
+                        breakdown.p['Food'][loc('job_farmer')] = (food) + 'v';
+                        food_base += (food * virgo * weather_multiplier * mill_multiplier * q_multiplier * production('psychic_boost','Food'));
+
+                        if (food > 0){
+                            breakdown.p['Food'][`ᄂ${loc('city_mill_title1')}`] = ((mill_multiplier - 1) * 100) + '%';
+                            breakdown.p['Food'][`ᄂ${loc('sign_virgo')}+0`] = ((virgo - 1) * 100) + '%';
+                            breakdown.p['Food'][`ᄂ${loc('morale_weather')}`] = ((weather_multiplier - 1) * 100) + '%';
+                            breakdown.p['Food'][`ᄂ${loc('quarantine')}+0`] = ((q_multiplier - 1) * 100) + '%';
+                        }
+                    }
+                }
+            }
+
+            if (global.tauceti['tau_farm'] && p_on['tau_farm']){
+                let colony_val = 1 + ((support_on['colony'] || 0) * 0.5);
+                let food_base = production('tau_farm','food') * p_on['tau_farm'] * production('psychic_boost','Food');
+                let delta = food_base * global_multiplier * colony_val;
+
+                breakdown.p['Food'][loc('tau_home_tau_farm')] = food_base + 'v';
+                if (food_base > 0){
+                    breakdown.p['Food'][`ᄂ${loc('tau_home_colony')}`] = ((colony_val - 1) * 100) + '%';
+                }
+
+                modRes('Food', delta * time_multiplier);
+            }
+
+            let hunting = 0;
+            if (global.tech['military']){
+                hunting = (global.race['herbivore'] && !global.race['carnivore']) || global.race['artifical'] ? 0 : armyRating(garrisonSize(),'hunting') / 3;
+                hunting *= production('psychic_boost','Food');
+            }
+
+            let biodome = 0;
+            let red_synd = syndicate('spc_red');
+            if (global.tech['mars']){
+                biodome = support_on['biodome'] * workerScale(global.civic.colonist.workers,'colonist') * production('biodome','food') * production('psychic_boost','Food');
+                if (global.race['cataclysm'] || global.race['orbit_decayed']){
+                    biodome += support_on['biodome'] * production('biodome','cat_food') * production('psychic_boost','Food');
+                }
+            }
+
+            breakdown.p['Food'][actions.space.spc_red.biodome.title()] = biodome + 'v';
+            if (biodome > 0){
+                breakdown.p['Food'][`ᄂ${loc('space_syndicate')}+0`] = -((1 - red_synd) * 100) + '%';
+                breakdown.p['Food'][`ᄂ${loc('space_red_ziggurat_title')}+0`] = ((zigVal - 1) * 100) + '%';
+                breakdown.p['Food'][`ᄂ${loc('sign_virgo')}+0`] = ((virgo - 1) * 100) + '%';
+            }
+            let generated = food_base + (hunting * q_multiplier) + (biodome * red_synd * zigVal * virgo);
+            generated *= global_multiplier;
+
+            breakdown.p['Food'][loc('soldiers')] = hunting + 'v';
+            if (hunting > 0){
+                breakdown.p['Food'][`ᄂ${loc('quarantine')}+1`] = ((q_multiplier - 1) * 100) + '%';
+            }
+            if(global.race['fasting']){
+                breakdown.p['Food'][`${loc('evo_challenge_fasting')}`] = '-100%';
+                generated *= 0;
+            }
+
+            let delta = generated;
+            if (!modRes('Food', (delta * time_multiplier) - priority_consume) || global.race['fasting']){
+                if (global.race['anthropophagite'] && global.resource[global.race.species].amount > 1 && !global.race['fasting']){
+                    global.resource[global.race.species].amount--;
+                    modRes('Food', 10000 * traits.anthropophagite.vars()[0]);
+                    global.stats.murders++;
+                }
+                else {
+                    fed = false;
+                    if(global.resource[global.race.species].amount > 0){
+                        let threshold = 1.25;
+                        let digestion = 0;
+                        let humpback = 0;
+                        let meditators = 0;
+                        let atrophy = 0;
+                        let infusion = 1;
+                        if (global.race['slow_digestion']){
+                            digestion += traits.slow_digestion.vars()[0];
+                        }
+                        let fathom = fathomCheck('slitheryn');
+                        if (fathom > 0){
+                            digestion += traits.slow_digestion.vars(1)[0] * fathom;
+                        }
+                        if (global.race['humpback']){
+                            humpback = traits.humpback.vars()[0];
+                        }
+                        if(global.race['fasting']){
+                            meditators = highPopAdjust(global.civic.meditator.workers) * 0.03;
+                        }
+                        if (global.race['atrophy']){
+                            atrophy = traits.atrophy.vars()[0];
+                        }
+                        if(global.portal['dish_life_infuser'] && global.portal['dish_life_infuser'].on){
+                            infusion = 0.95 ** global.portal['dish_life_infuser'].on;
+                        }
+                        threshold += digestion + humpback + meditators;
+                        threshold -= atrophy;
+                        threshold *= infusion
+                        if(global.race['fasting']){
+                            let base = global.resource[global.race.species].amount/100;
+                            //starvation resistance tooltip for fasting
+                            breakdown.p.consume[global.race.species][global.resource[global.race.species].name] = -(base).toFixed(2);
+                            breakdown.p.consume[global.race.species][loc('genelab_traits')] = (1 - food_consume_mod) * (base).toFixed(2);
+                            breakdown.p.consume[global.race.species][loc('Threshold')] = (threshold).toFixed(2);
+                            global.resource[global.race.species].delta = -(base * food_consume_mod - threshold) * time_multiplier;
+                        }
+                        // threshold can be thought of as the inverse of nutrition ratio per unit of food.
+                        // So if the generated food doesn't have enough nutrition for the consuming population, they starve.
+                        if (Math.rand(0, 10) === 0){
+                            if(global.race['fasting']){
+                                let starved = (global.resource[global.race.species].amount) / 100 * food_consume_mod - threshold;
+                                if(starved < 0){
+                                    starved = 0;
+                                }
+                                if(starved%1 > Math.random()){
+                                    starved = Math.ceil(starved);
+                                }
+                                else{
+                                    starved = Math.floor(starved);
+                                }
+                                if(starved > global.resource[global.race.species].amount){
+                                    starved = global.resource[global.race.species].amount;
+                                }
+                                global.resource[global.race.species].amount -= starved;
+                                global.stats.starved += starved;
+                            }
+                            else if (generated < consume / threshold){
+                                global['resource'][global.race.species].amount--;
+                                global.stats.starved++;
+                            }
+                        }
+                    }
+                }
+            }
+            if(banquet_consume >= global.resource.Food.amount){
+                global.city.banquet.strength = 0;
+            }
+            else if(banquet_consume > 1){
+                breakdown.p.consume.Food[`${loc('city_banquet')}`] = -(feast);
+            }
+
+            if (global.race['anthropophagite'] && global.resource[global.race.species].amount > 1 && Math.rand(0,400) === 0){
+                global.resource[global.race.species].amount--;
+                modRes('Food', 10000 * traits.anthropophagite.vars()[0]);
+                global.stats.murders++;
+            }
+        }
+
+
+        // Uranium
+        if (!global.race['environmentalist'] && global.race.universe !== 'magic' && global.tech['uranium'] && global.tech['uranium'] >= 3 && p_on['coal_power']){
+            let coal = p_on['coal_power'] * 0.35 * production('psychic_boost','Uranium');
+            breakdown.p['Uranium'][loc('city_coal_ash')] = (coal / 65 / global_multiplier);
+            modRes('Uranium', (coal * time_multiplier) / 65);
+        }
+
+        if (global.race['replicator']){
+            global.city['replicator'] = { count: global.race.replicator.pow, on: global.race.replicator.pow };
+        }
+
+        // Mass Relay charging
+        if (global.space['m_relay']){
+            if (p_on['m_relay']){
+                if (global.space.m_relay.charged < 10000){
+                    global.space.m_relay.charged++;
+                }
+            }
+            else {
+                global.space.m_relay.charged = 0;
+            }
+        }
+
+        /*if(global.race['fasting']){
+            const foodBuildings = ["city:tourist_center", "space:spaceport", "int_:starport", "gxy_:starbase", "space:space_barracks", "int_:zoo"];
+            //ignored buildings: "space:space_station", "space:embassy"
+            //titan quarters is excluded but not necessary because the scenario is incompatible with true path.
+            //some buildings are excluded to make progression not impossible.
+            for(let i=0;i<foodBuildings.length;i++){
+                let parts = foodBuildings[i].split(":");
+                let space = convertSpaceSector(parts[0]);
+                let region = parts[0] === 'city' ? parts[0] : space;
+                if (global[region][parts[1]] && global[region][parts[1]]['on']){
+                    if(p_on[parts[1]]){
+                        p_on[parts[1]] = 0;
+                    }
+                    $(`#${region}-${parts[1]} .on`).addClass('warn');
+                    $(`#${region}-${parts[1]} .on`).prop('title',`ON 0`);
+                }else {
+                    $(`#${region}-${parts[1]} .on`).removeClass('warn');
+                    $(`#${region}-${parts[1]} .on`).prop('title',`ON`);
+                }
+            }
+            global.civic.meditator.display = true;
+        }*/
+
+        let womling_technician = 1;
+        if (global.tech['womling_technicians']){
+            womling_technician = 1 + (p_on['womling_station'] * (global.tech['isolation'] ? 0.30 : 0.08));
+            if (global.tech['womling_gene']){
+                womling_technician *= 1.25;
+            }
+        }
+
+        // Droids
+        let miner_droids = {
+            adam: 0,
+            uran: 0,
+            coal: 0,
+            alum: 0,
+        };
+
+        if (global.interstellar['starport']){
+            if (global.interstellar.hasOwnProperty('mining_droid') && global.interstellar.mining_droid.count > 0){
+                let on_droid = support_on['mining_droid'];
+                let max_droid = global.interstellar.mining_droid.on;
+                let eff = max_droid > 0 ? on_droid / max_droid : 0;
+                let remaining = max_droid;
+
+                ['adam','uran','coal','alum'].forEach(function(res){
+                    remaining -= global.interstellar.mining_droid[res];
+                    if (remaining < 0) {
+                        global.interstellar.mining_droid[res] += remaining;
+                        remaining = 0;
+                    }
+                    miner_droids[res] = global.interstellar.mining_droid[res] * eff;
+                });
+            }
+        }
+
+        // Guard Post
+        if (global.portal['guard_post']){
+            global.portal.guard_post.s_max = global.portal.guard_post.count * actions.portal.prtl_ruins.guard_post.support();
+
+            if (global.portal.guard_post.on > 0){
+                let army = global.portal.fortress.garrison - (global.portal.fortress.patrols * global.portal.fortress.patrol_size);
+                if (p_on['soul_forge']){
+                    let forge = soulForgeSoldiers();
+                    if (forge <= army){
+                        army -= forge;
+                    }
+                }
+                if (army < jobScale(p_on['guard_post'])){
+                    p_on['guard_post'] = Math.floor(army / jobScale(1));
+                    global.portal['guard_post'].on = p_on['guard_post'];
+                }
+            }
+
+            global.portal.guard_post.support = p_on['guard_post'];
+        }
+
+
+        // Graphene Hack
+        if (global.tech['isolation'] && global.race['truepath']){
+            support_on['g_factory'] = p_on['refueling_station'];
+            global.space.g_factory.count = global.tauceti.refueling_station.count;
+            global.space.g_factory.on = global.tauceti.refueling_station.on;
+        }
+
+        if (global.race['replicator'] && p_on['replicator']){
+            let res = global.race.replicator.res;
+            let vol = replicator(res,p_on['replicator']);
+            breakdown.p.consume[res][loc('tau_replicator_db')] = vol;
+            modRes(res, time_multiplier * vol);
+        }
+
+        // Stargate
+        if (p_on['s_gate']){
+            if (!global.settings.showGalactic){
+                global.settings.showGalactic = true;
+                global.settings.space.stargate = true;
+                renderSpace();
+            }
+        }
+        else {
+            global.settings.showGalactic = false;
+            global.settings.space.stargate = false;
+        }
+
+        // Ship Yard
+        if (p_on['shipyard']){
+            global.settings.showShipYard = true;
+        }
+        else {
+            global.settings.showShipYard = false;
+            if (global.settings.govTabs === 5){
+                global.settings.govTabs = 0;
+            }
+        }
+
         if (global.interstellar['mass_ejector']){
             let total = 0;
             let mass = 0;
@@ -3046,74 +3035,6 @@ function fastLoop(){
                 }
             }
         }
-
-        /*let andromeda_helium = 0;
-        let andromeda_deuterium = 0;
-
-        if (p_on['s_gate']){
-            let ship_list = ['freighter','super_freighter','minelayer','raider'];
-            for (let i=0; i<ship_list.length; i++){
-                if (p_on['s_gate'] && global.galaxy.hasOwnProperty(ship_list[i])){
-                    support_on[ship_list[i]] = global.galaxy[ship_list[i]].on;
-                }
-            }
-        }
-
-        for (let j=0; j<galaxy_ship_types.length; j++){
-            let area = galaxy_ship_types[j].area;
-            let region = galaxy_ship_types[j].region;
-            for (let i=0; i<galaxy_ship_types[j].ships.length; i++){
-                let ship = galaxy_ship_types[j].ships[i];
-                let req = galaxy_ship_types[j].hasOwnProperty('req') ? (p_on[galaxy_ship_types[j].req] > 0 ? true : false) : true;
-                if (p_on['s_gate'] && req && global[area][ship] && (global[area][ship].crew > 0 || global[area][ship].mil > 0)){
-                    let operating = 0;
-                    if (actions[area][region][ship].ship.civ() > 0){
-                        operating = Math.floor(global[area][ship].crew / actions[area][region][ship].ship.civ());
-                    }
-                    if (actions[area][region][ship].ship.mil() > 0){
-                        let mil_operating = Math.floor(global[area][ship].mil / actions[area][region][ship].ship.mil());
-                        if (actions[area][region][ship].ship.civ() === 0 || mil_operating < operating){
-                            operating = mil_operating;
-                        }
-                    }
-
-                    if (actions[area][region][ship].ship.hasOwnProperty('helium')){
-                        let increment = +int_fuel_adjust(actions[area][region][ship].ship.helium).toFixed(2);
-                        let consume = (operating * increment);
-                        while (consume * time_multiplier > global.resource.Helium_3.amount + (global.resource.Helium_3.diff > 0 ? global.resource.Helium_3.diff * time_multiplier : 0) && consume > 0){
-                            consume -= increment;
-                            operating--;
-                        }
-                        modRes('Helium_3', -(consume * time_multiplier));
-                        andromeda_helium += consume;
-                    }
-
-                    if (actions[area][region][ship].ship.hasOwnProperty('deuterium')){
-                        let increment = +int_fuel_adjust(actions[area][region][ship].ship.deuterium).toFixed(2);
-                        let consume = (operating * increment);
-                        while (consume * time_multiplier > global.resource.Deuterium.amount + (global.resource.Deuterium.diff > 0 ? global.resource.Deuterium.diff * time_multiplier : 0) && consume > 0){
-                            consume -= increment;
-                            operating--;
-                        }
-                        modRes('Deuterium', -(consume * time_multiplier));
-                        andromeda_deuterium += consume;
-                    }
-
-                    if (support_on.hasOwnProperty(ship)){
-                        support_on[ship] = support_on[ship] > operating ? operating : support_on[ship];
-                    }
-                    else {
-                        support_on[ship] = operating;
-                    }
-                }
-                else {
-                    support_on[ship] = 0;
-                }
-            }
-        }
-
-        breakdown.p.consume.Helium_3[loc('galaxy_fuel_consume')] = -(andromeda_helium);
-        breakdown.p.consume.Deuterium[loc('galaxy_fuel_consume')] = -(andromeda_deuterium);*/
 
         if (global.space['shipyard'] && global.space.shipyard['ships']){
             let fuels = {
