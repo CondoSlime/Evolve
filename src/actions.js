@@ -1,4 +1,4 @@
-import { global, save, seededRandom, webWorker, keyMultiplier, keyMap, srSpeak, sizeApproximation, p_on, support_on, int_on, gal_on, spire_on, tmp_vars, setupStats } from './vars.js';
+import { global, save, seededRandom, webWorker, keyMultiplier, keyMap, srSpeak, sizeApproximation, p_on, support_on, tmp_vars, setupStats } from './vars.js';
 import { loc } from './locale.js';
 import { timeCheck, timeFormat, vBind, popover, clearPopper, flib, tagEvent, clearElement, costMultiplier, darkEffect, genCivName, powerModifier, powerCostMod, calcPrestige, adjustCosts, modRes, messageQueue, buildQueue, format_emblem, shrineBonusActive, calc_mastery, calcPillar, calcGenomeScore, getShrineBonus, eventActive, easterEgg, getHalloween, trickOrTreat, deepClone, hoovedRename, get_qlevel } from './functions.js';
 import { unlockAchieve, challengeIcon, alevel, universeAffix, checkAdept } from './achieve.js';
@@ -3508,7 +3508,7 @@ export const actions = {
                     multiplier *= 1 + (traits.curious.vars(3)[0] * fathom);
                 }
                 let sg_on = isStargateOn(wiki);
-                let num_tech_scavs_on = sg_on ? (wiki ? (global.galaxy?.scavenger?.on ?? 0) : gal_on['scavenger']) : 0;
+                let num_tech_scavs_on = sg_on ? (wiki ? (global.galaxy?.scavenger?.on ?? 0) : support_on['scavenger']) : 0;
                 if (num_tech_scavs_on > 0){
                     let pirate_alien2 = piracy('gxy_alien2', false, false, wiki);
                     let uni = num_tech_scavs_on * pirate_alien2 / 4;
@@ -6343,7 +6343,7 @@ export function getStructNumActive(c_action,isWiki){
                 found_support = true;
                 num_on = Math.min(num_on, support_on[parts[1]]);
             }
-            if (int_on.hasOwnProperty(parts[1])){
+            /*if (int_on.hasOwnProperty(parts[1])){
                 found_support = true;
                 num_on = Math.min(num_on, int_on[parts[1]]);
             }
@@ -6354,7 +6354,7 @@ export function getStructNumActive(c_action,isWiki){
             if (spire_on.hasOwnProperty(parts[1])){
                 found_support = true;
                 num_on = Math.min(num_on, spire_on[parts[1]]);
-            }
+            }*/
             // Error case, hope never to hit this.
             if (!found_support){
                 num_on = 0;

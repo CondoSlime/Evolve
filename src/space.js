@@ -1,4 +1,4 @@
-import { save, global, seededRandom, webWorker, keyMultiplier, sizeApproximation, p_on, support_on, int_on, gal_on } from './vars.js';
+import { save, global, seededRandom, webWorker, keyMultiplier, sizeApproximation, p_on, support_on } from './vars.js';
 import { vBind, messageQueue, clearElement, popover, clearPopper, flib, powerModifier, powerCostMod, calcPrestige, spaceCostMultiplier, darkEffect, eventActive, calcGenomeScore, randomKey, getTraitDesc, deepClone, get_qlevel } from './functions.js';
 import { unlockAchieve, unlockFeat, universeAffix } from './achieve.js';
 import { races, traits, genus_traits, genusVars, planetTraits, biomes } from './races.js';
@@ -1113,7 +1113,7 @@ const spaceProjects = {
             effect(wiki){
                 let sci = 500;
                 if (global.tech['science'] >= 13 && global.interstellar['laboratory']){
-                    let num_lab_on = wiki ? global.interstellar.laboratory.on : int_on['laboratory'];
+                    let num_lab_on = wiki ? global.interstellar.laboratory.on : support_on['laboratory'];
                     sci += num_lab_on * 25;
                 }
                 if (global.tech['ancient_study'] && global.tech['ancient_study'] >= 2){
@@ -2569,7 +2569,7 @@ const interstellarProjects = {
                     know *= 1 + ((global.race['cataclysm'] || global.race['orbit_decayed'] ? num_exo_labs_on : global.city.wardenclyffe.count) * 0.02);
                 }
                 let sg_on = isStargateOn(wiki);
-                let num_tech_scavs_on = sg_on ? (wiki ? (global.galaxy?.scavenger?.on ?? 0) : gal_on['scavenger']) : 0;
+                let num_tech_scavs_on = sg_on ? (wiki ? (global.galaxy?.scavenger?.on ?? 0) : support_on['scavenger']) : 0;
                 if ((global.race['cataclysm'] || global.race['orbit_decayed']) && num_tech_scavs_on > 0){
                     know *= 1 + (num_tech_scavs_on * +(piracy('gxy_alien2',false,false,wiki) * 0.75).toFixed(1));
                 }
@@ -2629,11 +2629,11 @@ const interstellarProjects = {
                 }
                 if (global.tech.banking >= 13){
                     if (global.galaxy['freighter']){
-                        let num_freighter_on = wiki ? global.galaxy.freighter.on : gal_on['freighter'];
+                        let num_freighter_on = wiki ? global.galaxy.freighter.on : support_on['freighter'];
                         vault *= 1 + (num_freighter_on * 0.03);
                     }
                     if (global.galaxy['super_freighter']){
-                        let num_super_freighter_on = wiki ? global.galaxy.super_freighter.on : gal_on['super_freighter'];
+                        let num_super_freighter_on = wiki ? global.galaxy.super_freighter.on : support_on['super_freighter'];
                         vault *= 1 + (num_super_freighter_on * 0.08);
                     }
                 }
@@ -4173,7 +4173,7 @@ const galaxyProjects = {
                 Horseshoe(){ return global.race['hooved'] ? 5 : 0; }
             },
             fuel_cost:{
-                Food(){return global.race['fasting'] ? 0 : 250},
+                Food(){return 250},
                 Helium_3(){return 25}
             },
             effect(wiki){
@@ -4551,7 +4551,7 @@ const galaxyProjects = {
             effect(wiki){
                 let base = global.tech['telemetry'] ? 1200 : 800;
                 if (global.tech.science >= 17){
-                    let num_scout_ship_on = wiki ? global.galaxy.scout_ship.on : gal_on['scout_ship'];
+                    let num_scout_ship_on = wiki ? global.galaxy.scout_ship.on : support_on['scout_ship'];
                     base += num_scout_ship_on * 25;
                 }
                 let num_telemetry_on = wiki ? (global.galaxy?.telemetry_beacon?.on ?? 0) : p_on['telemetry_beacon'];
@@ -5576,18 +5576,18 @@ export function piracy(region,rating,raw,wiki){
         let num_foothold_on = wiki ? global.galaxy.foothold.on : p_on['foothold'];
         if (region === 'gxy_alien2' && num_foothold_on){
             armada += num_foothold_on * 50;
-            let num_armed_miner_on = wiki ? global.galaxy.armed_miner.on : gal_on['armed_miner'];
+            let num_armed_miner_on = wiki ? global.galaxy.armed_miner.on : support_on['armed_miner'];
             if (num_armed_miner_on){
                 armada += num_armed_miner_on * galaxyProjects.gxy_alien2.armed_miner.ship.rating();
             }
         }
 
         if (region === 'gxy_chthonian'){
-            let num_minelayer_on = wiki ? global.galaxy.minelayer.on : gal_on['minelayer'];
+            let num_minelayer_on = wiki ? global.galaxy.minelayer.on : support_on['minelayer'];
             if (num_minelayer_on){
                 armada += num_minelayer_on * galaxyProjects.gxy_chthonian.minelayer.ship.rating();
             }
-            let num_raider_on = wiki ? global.galaxy.raider.on : gal_on['raider'];
+            let num_raider_on = wiki ? global.galaxy.raider.on : support_on['raider'];
             if (num_raider_on){
                 armada += num_raider_on * galaxyProjects.gxy_chthonian.raider.ship.rating();
             }

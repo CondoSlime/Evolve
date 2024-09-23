@@ -1,4 +1,4 @@
-import { global, seededRandom, keyMultiplier, p_on, gal_on, spire_on, hell_reports, hell_graphs, sizeApproximation } from './vars.js';
+import { global, seededRandom, keyMultiplier, p_on, support_on, hell_reports, hell_graphs, sizeApproximation } from './vars.js';
 import { vBind, clearElement, popover, clearPopper, timeFormat, powerCostMod, spaceCostMultiplier, messageQueue, powerModifier, calcPillar, deepClone, popCost, calcPrestige, get_qlevel } from './functions.js';
 import { unlockAchieve, alevel, universeAffix } from './achieve.js';
 import { traits, races, fathomCheck } from './races.js';
@@ -1274,7 +1274,7 @@ const fortressModules = {
             },
             effect(wiki){
                 let rating = global.blood['spire'] && global.blood.spire >= 2 ? 0.8 : 0.85;
-                let num_on = wiki ? (global.portal?.bireme?.on ?? 0) : gal_on['bireme'];
+                let num_on = wiki ? (global.portal?.bireme?.on ?? 0) : support_on['bireme'];
                 let bireme = +((rating ** num_on) * 100).toFixed(1);
                 return `<div class="has-text-caution">${loc('space_used_support',[loc('lake')])}</div><div>${loc('portal_transport_effect',[5])}</div><div class="has-text-danger">${loc('portal_transport_effect2',[bireme])}</div><div class="has-text-caution">${loc('galaxy_starbase_civ_crew',[$(this)[0].ship.civ()])}</div>`;
             },
@@ -1529,7 +1529,7 @@ const fortressModules = {
             support(){ return -1; },
             effect(wiki){
                 let port_value = 10000;
-                let num_base_camps_on = wiki ? (global.portal?.base_camp?.on ?? 0) : spire_on['base_camp'];
+                let num_base_camps_on = wiki ? (global.portal?.base_camp?.on ?? 0) : support_on['base_camp'];
                 if (num_base_camps_on > 0){
                     port_value *= 1 + (num_base_camps_on * 0.4);
                 }
@@ -4095,7 +4095,7 @@ function dragMechList(){
 }
 
 export function updateMechbay(){
-    let max = (spire_on['mechbay'] || 0) * 25;
+    let max = (support_on['mechbay'] || 0) * 25;
     let bay = 0;
     let active = 0;
     let scouts = 0;

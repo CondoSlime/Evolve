@@ -1382,6 +1382,7 @@ function fastLoop(){
         // Priority food consumption
         let priority_consume = 0;
         let banquet_consume = 0;
+        let food_consume_mod = 1;
         if (global.resource[global.race.species].amount >= 1 || global.city['farm'] || global.city['soul_well'] || global.city['compost'] || global.city['tourist_center'] || global.city['transmitter']){
 
             let soldiers = global.civic.garrison.workers;
@@ -1393,7 +1394,6 @@ function fastLoop(){
             }
 
             let consume = 0;
-            let food_consume_mod = 1;
             if(global.race['gluttony']){
                 food_consume_mod *= 1 + traits.gluttony.vars()[0] / 100;
             }
@@ -1453,19 +1453,15 @@ function fastLoop(){
                     banquet_consume = Math.max(consume, 100) * (banquet - 1) //minimum consumption for banquet hall is 100
                 }
             }
-            if(global.race['fasting']){
-                breakdown.p['Food'][`${loc('evo_challenge_fasting')}`] = '-100%';
-                generated *= 0;
-            }
             priority_consume = (consume + ravenous) * time_multiplier;
         }
 
         let power_grid = 0;
         let max_power = 0;
 
-        ["city", ...Object.keys(actions.space), ...Object.keys(actions.interstellar), ...Object.keys(actions.galaxy), ...Object.keys(actions.portal), ...Object.keys(actions.tauceti)].forEach(function(region){
-            let space = region === "city" ? region : convertSpaceSector(region);
-            let structures = region === "city" ? actions[region] : actions[space][region];
+        ['city', ...Object.keys(actions.space), ...Object.keys(actions.interstellar), ...Object.keys(actions.galaxy), ...Object.keys(actions.portal), ...Object.keys(actions.tauceti)].forEach(function(region){
+            let space = region === 'city' ? region : convertSpaceSector(region);
+            let structures = region === 'city' ? actions[region] : actions[space][region];
             Object.entries(structures).forEach(function([id, structure]){
                 let building = global[space][id];
                 //todo: add exception for starbase/embassy dependent buildings
@@ -1498,7 +1494,7 @@ function fastLoop(){
                         Object.entries(structure.fuel_cost).forEach(function([name, fuel]){
                             let cost = fuel();
                             if(['Helium_3', 'Oil', 'Deuterium'].includes(name)){
-                                if(space === "space"){
+                                if(space === 'space'){
                                     cost = +fuel_adjust(cost, true);
                                 }
                                 if(['interstellar', 'galaxy', 'tauceti'].includes(space)){
@@ -1506,13 +1502,14 @@ function fastLoop(){
                                 }
                             }
                             let cost_adj = cost * time_multiplier;
-                            if(name === "Food"){
-                                if(global.race['fasting'] && cost > 0){
+                            if(name === 'Food'){
+                                if(global.race['fasting'] && cost_adj > 0){
                                     p_on[id] = 0;
                                 }
-                                else{
+                                else if(cost_adj > 0){
                                     p_on[id] = Math.min(p_on[id], Math.floor((global.resource[name].amount - priority_consume) / cost_adj));
                                     p_on[id] = Math.max(p_on[id], 0);
+                                    console.log(cost, id, p_on[id])
                                 }
                             }
                             else if(cost_adj > 0){
@@ -1522,7 +1519,7 @@ function fastLoop(){
                         Object.entries(structure.fuel_cost).forEach(function([name, fuel]){
                             let cost = fuel();
                             if(['Helium_3', 'Oil', 'Deuterium'].includes(name)){
-                                if(space === "space"){
+                                if(space === 'space'){
                                     cost = +fuel_adjust(cost, true);
                                 }
                                 if(['interstellar', 'galaxy', 'tauceti'].includes(space)){
@@ -1903,6 +1900,7 @@ function fastLoop(){
                             global.civic.crew.assigned = global.civic.crew.workers;
                             crew_civ += global[area][ship]['crew'];
                             total += global[area][ship]['crew'];
+                            support_on[ship] = Math.min(support_on[ship], Math.floor(global[area][ship]['crew']/civPerShip));
                         }
     
                         if (actions[area][region][ship].ship['mil'] && global[area][ship].hasOwnProperty('mil')){
@@ -1922,6 +1920,7 @@ function fastLoop(){
                                 global[area][ship]['mil'] = 0;
                             }
                             crew_mil += global[area][ship]['mil'];
+                            support_on[ship] = Math.min(support_on[ship], Math.floor(global[area][ship]['mil']/milPerShip));
                         }
                     }
                     else{
