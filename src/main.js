@@ -2710,7 +2710,7 @@ function fastLoop(){
                 global.city.banquet.strength = 0;
             }
             else if(banquet_consume > 1){
-                breakdown.p.consume.Food[`${loc('city_banquet')}`] = -(feast);
+                breakdown.p.consume.Food[`${loc('city_banquet')}`] = -(banquet_consume);
             }
 
             if (global.race['anthropophagite'] && global.resource[global.race.species].amount > 1 && Math.rand(0,400) === 0){
