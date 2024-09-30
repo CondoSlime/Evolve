@@ -39,6 +39,7 @@ export var support_on = {};
 export var int_on = {};
 export var gal_on = {};
 export var spire_on = {};
+export var structList = [];
 export var quantum_level = 0;
 export var achieve_level = 0;
 export var universe_level = 0;

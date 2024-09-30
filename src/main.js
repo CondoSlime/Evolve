@@ -1,4 +1,4 @@
-import { global, save, seededRandom, webWorker, intervals, keyMap, atrack, resizeGame, breakdown, sizeApproximation, keyMultiplier, power_generated, p_on, support_on, set_qlevel, quantum_level } from './vars.js';
+import { global, save, seededRandom, webWorker, intervals, keyMap, atrack, resizeGame, breakdown, sizeApproximation, keyMultiplier, power_generated, p_on, support_on, structList, set_qlevel, quantum_level } from './vars.js';
 import { loc } from './locale.js';
 import { unlockAchieve, checkAchievements, drawAchieve, alevel, universeAffix, challengeIcon, unlockFeat, checkAdept } from './achieve.js';
 import { gameLoop, vBind, popover, clearPopper, flib, tagEvent, timeCheck, arpaTimeCheck, timeFormat, powerModifier, modRes, initMessageQueue, messageQueue, calc_mastery, calcPillar, darkEffect, calcQueueMax, calcRQueueMax, buildQueue, shrineBonusActive, getShrineBonus, eventActive, easterEggBind, trickOrTreatBind, powerGrid, deepClone, addATime, exceededATimeThreshold, loopTimers, calcQuantumLevel } from './functions.js';
@@ -242,6 +242,8 @@ buildQueue();
 if (global.race['shapeshifter']){
     shapeShift(false,true);
 }
+
+structList.push('city', ...Object.keys(actions.space), ...Object.keys(actions.interstellar), ...Object.keys(actions.galaxy), ...Object.keys(actions.portal), ...Object.keys(actions.tauceti));
 
 Object.keys(gridDefs()).forEach(function(gridtype){
     powerGrid(gridtype);
@@ -1459,12 +1461,11 @@ function fastLoop(){
         let power_grid = 0;
         let max_power = 0;
 
-        ['city', ...Object.keys(actions.space), ...Object.keys(actions.interstellar), ...Object.keys(actions.galaxy), ...Object.keys(actions.portal), ...Object.keys(actions.tauceti)].forEach(function(region){
+        structList.forEach(function(region){
             let space = region === 'city' ? region : convertSpaceSector(region);
             let structures = region === 'city' ? actions[region] : actions[space][region];
             Object.entries(structures).forEach(function([id, structure]){
                 let building = global[space][id];
-                //todo: add exception for starbase/embassy dependent buildings
                 if(building){
                     let title = typeof structure.title === 'string' ? structure.title : structure.title();
                     if(structure.hasOwnProperty('powered')){
