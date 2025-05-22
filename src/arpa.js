@@ -1642,6 +1642,12 @@ function pick_monument(){
     }
     if (global.race.universe === 'magic' && global.arpa['m_type'] !== 'Megalith'){
         monuments.push('Megalith');
+        if(global.race['unlucky']){
+            return 'Megalith';
+        }
+    }
+    if(global.race['unlucky'] && global.arpa['m_type'] !== 'Sculpture'){
+        return 'Sculpture';
     }
     return monuments[Math.rand(0,monuments.length)];
 }

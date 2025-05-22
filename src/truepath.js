@@ -5365,7 +5365,7 @@ export function tritonWar(){
     if (global.space['fob']){
         if (global.space.fob.enemy <= 1000){
             let upper = global.tech['outer'] && global.tech.outer >= 4 ? 125 : 100;
-            global.space.fob.enemy += Math.rand(25,upper);
+            global.space.fob.enemy += global.race['unlucky'] ? upper - 1 : Math.rand(25,upper);
         }
 
         let wound_cap = Math.ceil(jobScale(global.space.fob.enemy) / 5);
@@ -5374,11 +5374,11 @@ export function tritonWar(){
         if (wounded < 0){ wounded = 0; }
         let defense = armyRating(global.space.fob.troops,'army',wounded);
 
-        let died = Math.rand(0,wounded + 1);
+        let died = global.race['unlucky'] ? wounded : Math.rand(0,wounded + 1);
         soldierDeath(died);
         global.civic.garrison.wounded -= died;
 
-        let kills = Math.min(Math.rand(0,defense),global.space.fob.enemy);
+        let kills = global.race['unlucky'] ? 0 /*better have enough rating or you'll softlock*/ : Math.min(Math.rand(0,defense),global.space.fob.enemy);
         global.space.fob.enemy -= kills;
         if (global.space.fob.enemy < 0){
             global.space.fob.enemy = 0; 
@@ -5388,14 +5388,14 @@ export function tritonWar(){
             global.race.ocularPowerConfig.ds += Math.round(kills * traits.ocular_power.vars()[1]);
         }
 
-        let hurt = Math.rand(0,global.space.fob.troops + 1);
+        let hurt = global.race['unlucky'] ? global.space.fob.troops : Math.rand(0,global.space.fob.troops + 1);
         if (hurt > wound_cap){ hurt = wound_cap; }
         if (global.race['armored']){ hurt -= jobScale(1); }
         if (global.race['scales']){ hurt -= jobScale(1); }
         if (global.tech['armor']){ hurt -= jobScale(global.tech['armor']); }
         if (hurt < 0){ hurt = 0; }
 
-        if (global.race['revive'] && died > 0){
+        if (global.race['revive'] && died > 0 && !global.race['unlucky']){
             let revive = Math.round(Math.rand(0,died + 1));
             global.civic.garrison.workers += revive;
         }
@@ -5426,7 +5426,7 @@ export function erisWar(){
     if (global.space['digsite']){
         if (global.space.digsite.enemy <= 10000){
             let upper = 250;
-            global.space.digsite.enemy += Math.rand(25,upper);
+            global.space.digsite.enemy += global.race['unlucky'] ? upper - 1 : Math.rand(25,upper);
         }
 
         let offense = armyRating(support_on['shock_trooper'],'army',0);
@@ -5435,7 +5435,7 @@ export function erisWar(){
         }
         offense *= syndicate('spc_eris');
 
-        global.space.digsite.enemy -= Math.rand(0,offense);
+        global.space.digsite.enemy -= global.race['unlucky_intervention'] ? offense-1 : Math.rand(0,offense);
         if (global.space.digsite.enemy < 0){ global.space.digsite.enemy = 0; }
         else if (global.space.digsite.enemy > 10000){ global.space.digsite.enemy = 10000; }
 

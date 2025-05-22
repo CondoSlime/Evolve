@@ -588,7 +588,7 @@ vBind({
         },
         petPet(){
             if (global.race['pet'] && global.race.pet.pet === 0){
-                let outcome = global.race.pet.type === 'cat' ? Math.rand(0,3) : Math.rand(0,10);
+                let outcome = !global.race['unlucky'] ? (global.race.pet.type === 'cat' ? Math.rand(0,3) : Math.rand(0,10)) : 0;
                 if (outcome === 0){
                     global.race.pet.pet = -60;
                     messageQueue(loc(`event_${global.race.pet.type}_pet_failure`,[loc(`event_${global.race.pet.type}_name${global.race.pet.name}`)]),false,false,['events','minor_events']);
@@ -837,6 +837,7 @@ set_qlevel(calcQuantumLevel(true));
 $('#lbl_city').html('Village');
 
 var loopTick = 0; // Used to synchronize the fast, mid, and long loops to each other
+global.race['unlucky'] = 1;
 export function execGameLoops(periods = 1){
     // Currently there is no smart catch-up mechanism
     // Limit to 1 minute (12 game days) of simulation per call
@@ -3838,13 +3839,13 @@ function fastLoop(){
                         }
                         // threshold can be thought of as the inverse of nutrition ratio per unit of food.
                         // So if the generated food doesn't have enough nutrition for the consuming population, they starve.
-                        if (Math.rand(0, 10) === 0){
+                        if (Math.rand(0, 10) === 0 || global.race['unlucky']){
                             if(global.race['fasting']){
                                 let starved = (global.resource[global.race.species].amount) / 100 * food_consume_mod - threshold;
                                 if(starved < 0){
                                     starved = 0;
                                 }
-                                if(starved%1 > Math.random()){
+                                if(starved%1 > Math.random() || global.race['unlucky']){
                                     starved = Math.ceil(starved);
                                 }
                                 else{
@@ -3867,7 +3868,7 @@ function fastLoop(){
                 }
             }
 
-            if (global.race['anthropophagite'] && global.resource[global.race.species].amount > 1 && Math.rand(0,400) === 0){
+            if (global.race['anthropophagite'] && global.resource[global.race.species].amount > 1 && (Math.rand(0,400) === 0 || global.race['unlucky'] /* dangerous */)){
                 global.resource[global.race.species].amount--;
                 modRes('Food', 10000 * traits.anthropophagite.vars()[0]);
                 global.stats.murders++;
@@ -3967,7 +3968,7 @@ function fastLoop(){
                 }
 
                 upperBound *= (3 - (2 ** time_multiplier));
-                if(Math.rand(0, upperBound) <= lowerBound){
+                if(global.race['unlucky'] ? Math.max(0, upperBound-1) /* dangerous */ : Math.rand(0, upperBound) <= lowerBound){
                     global['resource'][global.race.species].amount++;
                     global.civic[global.civic.d_job].workers++;
                 }
@@ -4012,7 +4013,7 @@ function fastLoop(){
             }
             else {
                 global.race.emfield++;
-                if (Math.rand(0,500) === 0){
+                if (Math.rand(0,500) === 0 || global.race['unlucky']){
                     global.race['discharge'] = global.race.emfield;
                     global.race.emfield = 1;
                 }
@@ -8438,13 +8439,13 @@ function midLoop(){
             }
 
             let catchVar = Math.round(40 / traits.unfathomable.vars()[1]);
-            if (usedCap < global.city.captive_housing.raceCap && Math.rand(0,(catchVar * usedCap) - hunt) <= 0){
+            if (usedCap < global.city.captive_housing.raceCap && (global.race['unlucky'] ? Math.max(0, (catchVar * usedCap) - hunt) : Math.rand(0,(catchVar * usedCap) - hunt)) <= 0){
                 let k = Math.rand(0,global.city.surfaceDwellers.length);
                 global.city.captive_housing[`jailrace${k}`]++;
             }
 
             if (global.tech['unfathomable'] && global.tech.unfathomable >= 2 && global.civic.torturer.workers > 0 && imprisoned.length > 0){
-                if (Math.rand(0,Math.ceil((thralls+1) ** 1.45)) < (global.civic.torturer.workers / 2) * (1 + traits.psychic.vars()[0])){
+                if ((global.race['unlucky'] ? Math.ceil((thralls+1) ** 1.45) : Math.rand(0,Math.ceil((thralls+1) ** 1.45))) < (global.civic.torturer.workers / 2) * (1 + traits.psychic.vars()[0])){
                     let k = imprisoned[Math.rand(0,imprisoned.length)];
                     global.city.captive_housing[`jailrace${k}`]--;
                     global.city.captive_housing[`race${k}`]++;
@@ -10156,8 +10157,8 @@ function midLoop(){
                 caps['Knowledge'] += gain;
                 breakdown.c.Knowledge[loc('interstellar_laboratory_title')] = gain+'v';
 
-                if (Math.rand(0,10) < global.tauceti.womling_lab.scientist){
-                    global.tauceti.womling_lab.tech += Math.rand(0,global.tauceti.womling_lab.scientist + 1);
+                if (global.race['unlucky'] ? 9 : Math.rand(0,10) < global.tauceti.womling_lab.scientist){
+                    global.tauceti.womling_lab.tech += global.race['unlucky_intervention'] ? global.tauceti.womling_lab.scientist : Math.rand(0,global.tauceti.womling_lab.scientist + 1);
                     let expo = global.stats.achieve['overlord'] && global.stats.achieve.overlord.l >= 5 ? 4.9 : 5;
                     if (global.race['lone_survivor']){ expo -= 0.1; }
                     if (global.tauceti.womling_lab.tech >= Math.round((global.tech.womling_tech + 2) ** expo)){
@@ -10174,13 +10175,13 @@ function midLoop(){
             unemployed -= miners;
 
             let heal_chance = global.tech['tech_womling_firstaid'] ? 3 : 4;
-            if (Math.rand(0,10) === 0){
-                let raw = Math.rand(0,miners + scientist);
+            if (Math.rand(0,10) === 0 || global.race['unlucky']){
+                let raw = global.race['unlucky'] ? miners + scientist - 1 : Math.rand(0,miners + scientist);
                 if (raw > injured){
                     injured = raw;
                 }
             }
-            else if (injured > 0 && Math.rand(0,heal_chance) === 0){
+            else if (injured > 0 && Math.rand(0,heal_chance) === 0 || global.race['unlucky_intevention']){
                 injured--;
             }
 
@@ -10503,7 +10504,7 @@ function midLoop(){
                 if (global.civic.foreign[`gov${i}`].sab === 0){
                     switch (global.civic.foreign[`gov${i}`].act){
                         case 'influence':
-                            if (Math.floor(seededRandom(0,4 + spyCatchMod)) === 0){
+                            if (global.race['unlucky'] || Math.floor(seededRandom(0,4 + spyCatchMod)) === 0){
                                 spyCaught(i);
                             }
                             else {
@@ -10519,7 +10520,7 @@ function midLoop(){
                             }
                             break;
                         case 'sabotage':
-                            if (Math.floor(seededRandom(0,3 + spyCatchMod)) === 0){
+                            if (global.race['unlucky'] || Math.floor(seededRandom(0,3 + spyCatchMod)) === 0){
                                 spyCaught(i);
                             }
                             else {
@@ -10535,7 +10536,7 @@ function midLoop(){
                             }
                             break;
                         case 'incite':
-                            if (Math.floor(seededRandom(0,2 + Math.floor(spyCatchMod / 2))) === 0){
+                            if (global.race['unlucky'] || Math.floor(seededRandom(0,2 + Math.floor(spyCatchMod / 2))) === 0){
                                 spyCaught(i);
                             }
                             else {
@@ -10845,7 +10846,7 @@ function midLoop(){
 
         let belt_mining = support_on['iron_ship'] + support_on['iridium_ship'];
         if (belt_mining > 0 && global.tech['asteroid'] && global.tech['asteroid'] === 3){
-            if (Math.rand(0,250) <= belt_mining){
+            if (global.race['unlucky_intervention'] || Math.rand(0,250) <= belt_mining){
                 global.tech['asteroid'] = 4;
                 global.resource.Elerium.display = true;
                 modRes('Elerium',1);
@@ -10859,7 +10860,7 @@ function midLoop(){
         }
 
         if (p_on['outpost'] > 0 && global.tech['gas_moon'] && global.tech['gas_moon'] === 1){
-            if (Math.rand(0,100) <= p_on['outpost']){
+            if (global.race['unlucky_intervention'] || Math.rand(0,100) <= p_on['outpost']){
                 initStruct(actions.space.spc_gas_moon.oil_extractor);
                 global.tech['gas_moon'] = 2;
                 messageQueue(loc('discover_oil',[planetName().gas_moon]),'info',false,['progress']);
@@ -10991,7 +10992,7 @@ function midLoop(){
             global.portal['devilish_dish'].time = progress === 0 ? timeFormat(-1) : timeFormat((100 - global.portal['devilish_dish'].done) / progress);
         }
 
-        if (global.tech['asphodel'] && global.tech.asphodel === 4 && Math.rand(0,25) === 0){
+        if (global.tech['asphodel'] && global.tech.asphodel === 4 && (global.race['unlucky_intervention'] || Math.rand(0,25) === 0)){
             global.tech['asphodel'] = 5;
             drawTech();
             messageQueue(loc('eden_asphodel_hostile'),'info',false,['progress']);
@@ -11560,15 +11561,15 @@ function longLoop(){
         if (global.civic.homeless > 0){
             let railway = global.arpa['railway'] ? global.arpa.railway.rank : 0;
             let abandon_odds = Math.floor(railway / (railway + 25) * 10);
-            if (Math.rand(0,10) <= abandon_odds){
+            if ((global.race['unlucky'] ? 9 : Math.rand(0,10)) <= abandon_odds){
                 global.civic.homeless--;
             }
         }
 
         if (global.race['unstable']){
-            if (global.resource[global.race.species].amount > 0 && Math.rand(0,100) < traits.unstable.vars()[0]){
+            if (global.resource[global.race.species].amount > 0 && (global.race['unlucky'] ? 0 : Math.rand(0,100)) < traits.unstable.vars()[0]){
                 let bound = Math.ceil((global.resource[global.race.species].amount ** 0.9) * traits.unstable.vars()[1] / 100);
-                let died = Math.rand(0,bound);
+                let died = global.race['unlucky'] ? Math.max(0, bound-1) : Math.rand(0,bound);
                 global.resource[global.race.species].amount -= died;
                 if (global.resource[global.race.species].amount < 0){ global.resource[global.race.species].amount = 0; }
                 global.stats.uDead += died;
@@ -11576,7 +11577,7 @@ function longLoop(){
         }
 
         if (global.race['blubber'] && global.resource[global.race.species].amount >= 50){
-            let oldAge = Math.rand(0,1 + Math.floor(global.resource[global.race.species].amount / 50));
+            let oldAge = global.race['unlucky'] ? 0 : Math.rand(0,1 + Math.floor(global.resource[global.race.species].amount / 50));
             blubberFill(oldAge);
         }
 
@@ -11622,7 +11623,7 @@ function longLoop(){
         }
 
         if (global.race['truepath'] && global.civic.foreign.gov3.mil < 500){
-            if (Math.rand(0, 50) === 0){
+            if (Math.rand(0, 50) === 0 || global.race['unlucky']){
                 global.civic.foreign.gov3.mil++;
             }
         }
@@ -11696,7 +11697,7 @@ function longLoop(){
                     healed++;
                     hc -= max_bound;
                 }
-                if (Math.rand(0,max_bound) < hc){
+                if (Math.rand(0,max_bound) < hc && !global.race['unlucky']){
                     healed++;
                 }
             }
@@ -11719,7 +11720,7 @@ function longLoop(){
             let max_merc_roll = global.race['high_pop'] ? traits.high_pop.vars()[0] : 1;
             let num_restore = 0;
             for (let roll_num = 0; roll_num < max_merc_roll; roll_num++){
-                if (Math.rand(0, merc_bound) === 0){
+                if (Math.rand(0, merc_bound) === 0 && !global.race['unlucky']){
                     num_restore++;
                 }
             }
@@ -11779,14 +11780,63 @@ function longLoop(){
                 global.city.calendar.temp = 1;
                 global.city.calendar.weather = -1;
             }
-            else if (Math.rand(0,5) === 0){
+            
+            else if (Math.rand(0,5) === 0 || global.race['unlucky']){
                 let temp = Math.rand(0,3);
                 let sky = Math.rand(0,5);
                 let wind = Math.rand(0,3);
+                if(global.race['unlucky']){
+                    let cold_weight = 0;
+                    let hot_weight = 0;
+                    if(global.race['cold_blooded']){
+                        cold_weight++;
+                        hot_weight--;
+                    }
+                    if(global.race['lazy']){
+                        hot_weight += 3;
+                    }
+                    if(global.race['skittish']){
+                        cold_weight -= 2;
+                    }
+                    if(global.race['smoldering']){
+                        hot_weight -= 1 + Math.floor(global.city.hot / 10);
+                    }
+                    if(global.race['chilled']){
+                        cold_weight -= 1 + Math.floor(global.city.cold / 10);
+                    }
+                    if(global.race['heat_intolerance']){
+                        hot_weight = 999;
+                        cold_weight = 0;
+                    }
+                    if(global.race['cold_intolerance']){
+                        cold_weight = 999;
+                        hot_weight = 0;
+                    }
+                    temp = cold_weight > hot_weight ? 0 : 2
+                    if(global.city.ptrait.includes('ozone') || (global.race['unfathomable'] && global.race['dark_dweller'])){
+                        sky = 4; //force sun
+                    }
+                    else if(global.race['skittish'] && temp !== 0){
+                        sky = 0; //force thunderstorm
+                        wind = 0;
+                    }
+                    else if(global.race['nyctophilia']){
+                        sky = 4; //force sun
+                    }
+                    if(global.race['parasite'] && !global.race['artifical']){
+                        wind = 2; //force no wind
+                    }
+                    else if(global.race['floating']){
+                        wind = 0; //force wind
+                    }
+                    if(global.city.calendar.weather === 0 && sky > 2 && global.race['rainbow']){
+                        sky = 1; //skip rain -> sun whenever possible
+                    }
+                }
                 switch(global.city.biome){
                     case 'oceanic':
                     case 'swamp':
-                        if (Math.rand(0,2) === 0 && sky > 0){
+                        if (Math.rand(0,2) === 0 && sky > 0 && !global.race['unlucky']){
                             sky--;
                         }
                         break;
@@ -11795,17 +11845,17 @@ function longLoop(){
                         if (global.city.calendar.season === 3){
                             temp = 0;
                         }
-                        else if (Math.rand(0,2) === 0 && temp > 0){
+                        else if (Math.rand(0,2) === 0 && temp > 0 && !global.race['unlucky']){
                             temp--;
                         }
                         break;
                     case 'desert':
-                        if (Math.rand(0,2) === 0 && sky < 4){
+                        if (Math.rand(0,2) === 0 && sky < 4 && !global.race['unlucky']){
                             sky++;
                         }
                         break;
                     case 'ashland':
-                        if (Math.rand(0,2) === 0){
+                        if (Math.rand(0,2) === 0 && !global.race['unlucky']){
                             if (sky < 1){
                                 sky++;
                             }
@@ -11817,7 +11867,7 @@ function longLoop(){
                         if (global.city.calendar.season === 1){
                             temp = 2;
                         }
-                        else if (Math.rand(0,2) === 0 && temp < 2 && !global.city.ptrait.includes('permafrost')){
+                        else if (Math.rand(0,2) === 0 && temp < 2 && !global.city.ptrait.includes('permafrost') && !global.race['unlucky']){
                             temp++;
                         }
                         break;
@@ -11827,22 +11877,22 @@ function longLoop(){
 
                 switch(global.city.calendar.season){
                     case 0: // Spring
-                        if (Math.rand(0,3) === 0 && sky > 0){
+                        if (Math.rand(0,3) === 0 && sky > 0 && !global.race['unlucky']){
                             sky--;
                         }
                         break;
                     case 1: // Summer
-                        if (Math.rand(0,3) === 0 && temp < 2){
+                        if (Math.rand(0,3) === 0 && temp < 2 && !global.race['unlucky']){
                             temp++;
                         }
                         break;
                     case 2: // Fall
-                        if (Math.rand(0,3) === 0 && wind > 0){
+                        if (Math.rand(0,3) === 0 && wind > 0 && !global.race['unlucky']){
                             wind--;
                         }
                         break;
                     case 3: // Winter
-                        if (Math.rand(0,3) === 0 && temp > 0){
+                        if (Math.rand(0,3) === 0 && temp > 0 && !global.race['unlucky']){
                             temp--;
                         }
                         break;
@@ -11851,7 +11901,8 @@ function longLoop(){
                 }
 
                 if (global.city.ptrait.includes('stormy') && wind > 0){
-                    if (global.race['rejuvenated'] || Math.rand(0,2) === 0){
+                    if (global.race['rejuvenated'] || (Math.rand(0,2) === 0 && !global.race['unlucky'])){
+                        //unlucky does not catch this on rejuvenated stormy planet but it has no effect regardless
                         wind--;
                     }
                 }
@@ -11870,11 +11921,11 @@ function longLoop(){
                 }
                 else {
                     if (global.race['rainbow'] && global.city.calendar.weather === 0){
-                        global.race['rainbow_active'] = Math.rand(10,20);
+                        global.race['rainbow_active'] = Math.rand(10,20); //never happens with unlucky
                     }
                     global.city.calendar.weather = 2;
                     if (global.race['darkness']){
-                        if (Math.rand(0, 7 - traits.darkness.vars()[0]) === 0){
+                        if (Math.rand(0, 7 - traits.darkness.vars()[0]) === 0 && !global.race['unlucky']){
                             global.city.calendar.weather = 1;
                         }
                     }
@@ -12009,7 +12060,7 @@ function longLoop(){
         }
 
         if (global.tech['xeno'] && global.tech['xeno'] >= 5 && !global.tech['piracy']){
-            if (Math.rand(0,5) === 0){
+            if (global.race['unlucky_intervention'] || Math.rand(0,5) === 0 && !global.race['unlucky']){
                 global.tech['piracy'] = 1;
                 messageQueue(loc('galaxy_piracy_msg',[races[global.galaxy.alien2.id].name]),'info',false,['progress']);
                 renderSpace();
@@ -12055,7 +12106,7 @@ function longLoop(){
             }
             value = Math.round(value * sup.supress) * workerScale(global.civic.archaeologist.workers,'archaeologist') / 1000;
 
-            if (Math.rand(0,10000) + 1 <= value){
+            if (global.race['unlucky'] ? 10000 : Math.rand(0,10000) + 1 <= value){ //doable with 40 archeologists
                 global.tech['hell_vault'] = 1;
                 messageQueue(loc('portal_ruins_vault'),'info',false,['progress']);
                 renderFortress();
@@ -12071,7 +12122,7 @@ function longLoop(){
                         global.space.syndicate[region] = 0;
                     }
                     let reinforce = region === 'spc_triton' ? 5 : 10;
-                    if (global.space.syndicate[region] < (cap) && Math.rand(0, reinforce) === 0){
+                    if (global.space.syndicate[region] < (cap) && (Math.rand(0, reinforce) === 0 || global.race['unlucky'])){
                         global.space.syndicate[region]++;
                     }
                     if (global.space.syndicate[region] > cap){
@@ -12101,17 +12152,17 @@ function longLoop(){
                     if (ship.damage > 0 && p_on['shipyard']){
                         ship.damage--;
                     }
-                    if (ship.location !== 'spc_dwarf' && Math.rand(0, 10) === 0){
+                    if (ship.location !== 'spc_dwarf' && (Math.rand(0, 10) === 0 || global.race['unlucky'])){
                         let dm = ship.location === 'spc_triton' ? 2 : 1;
                         switch (ship.armor){
                             case 'steel':
-                                ship.damage += Math.rand(1, 8 * dm);
+                                ship.damage += global.race['unlucky'] ? 8 * dm - 1 : Math.rand(1, 8 * dm);
                                 break;
                             case 'alloy':
-                                ship.damage += Math.rand(1, 6 * dm);
+                                ship.damage += global.race['unlucky'] ? 6 * dm - 1 : Math.rand(1, 6 * dm);
                                 break;
                             case 'neutronium':
-                                ship.damage += Math.rand(1, 4 * dm);
+                                ship.damage += global.race['unlucky'] ? 4 * dm - 1 : Math.rand(1, 4 * dm);
                                 break;
                         }
                         if (ship.damage > 90){ ship.damage = 90; }
@@ -12180,7 +12231,7 @@ function longLoop(){
             }
         }
 
-        if (!global.race['warlord'] && (global.stats.matrix > 0 || global.stats.retire > 0) && !global.race['servants'] && Math.rand(0,25) === 0){
+        if (!global.race['warlord'] && (global.stats.matrix > 0 || global.stats.retire > 0) && !global.race['servants'] && Math.rand(0,25) === 0 && !global.race['unlucky']){
             let womlings = Math.min(global.stats.matrix,100) + Math.min(global.stats.retire,100) + Math.min(global.stats.eden,100);
             let skilled = Math.min(Math.min(global.stats.matrix, global.stats.retire),100);
             skilled += global.stats.achieve['pathfinder'] && global.stats.achieve.pathfinder.l >= 5 ? 2 : 0;
@@ -12228,17 +12279,17 @@ function longLoop(){
                 }
 
                 if (global.tech.focus_cure === 4 && global.race.vax < 25){
-                    global.race.vax += Math.rand(0, med * 2) / 150;
+                    global.race.vax += global.race['unlucky_intervention'] ? max * 2 - 1 : Math.rand(0, med * 2) / 150;
                 }
                 else if (global.tech.focus_cure === 4 && global.race.vax >= 25){
                     global.tech.focus_cure = 5;
                     messageQueue(loc('tech_vaccine_campaign_msg1'),'info',false,['progress']);
                 }
                 else if (global.tech.focus_cure === 5 && global.race.vax < 50){
-                    global.race.vax += Math.rand(0, med * 2) / 450;
+                    global.race.vax += global.race['unlucky_intevention'] ? max * 2 - 1 : Math.rand(0, med * 2) / 450;
                 }
                 else if (global.tech.focus_cure === 5 && global.race.vax < 75){
-                    global.race.vax += Math.rand(0, med * 2) / 1200;
+                    global.race.vax += global.race['unlucky_intevention'] ? max * 2 - 1 : Math.rand(0, med * 2) / 1200;
                 }
                 else if (global.tech.focus_cure === 6 && global.race.vax < 100){
                     let div = 1000;
@@ -12246,7 +12297,7 @@ function longLoop(){
                     else if (global.tech['vax_s']){ div = 390; }
                     else if (global.tech['vax_f']){ div = 25; }
                     else if (global.tech['vax_c']){ div = 125; }
-                    global.race.vax += Math.rand(0, med * 2) / div;
+                    global.race.vax += global.race['unlucky_intevention'] ? max * 2 - 1 : Math.rand(0, med * 2) / div;
                 }
                 else if (global.race.vax >= 100 && global.tech.focus_cure <= 6){
                     global.race.vax = 100;
@@ -12502,25 +12553,25 @@ function longLoop(){
         }
 
         if (global.race['truepath'] && global.tech['tauceti'] && !global.race['lone_survivor']){
-            if (global.tech.tauceti === 5 && !global.tech['plague'] && Math.rand(0,50) === 0){
+            if (global.tech.tauceti === 5 && !global.tech['plague'] && (Math.rand(0,50) === 0 || global.race['unlucky_intervention'])){
                 global.tech['plague'] = 1;
                 messageQueue(loc('tau_plague',[govTitle(3)]),'info',false,['progress']);
             }
             else if (global.tech['plague'] && global.tech['tau_roid'] && global.tech['tau_whale']){
-                if (global.tech.plague === 1 && (global.tech.tau_roid >= 4 || global.tech.tau_whale >= 2) && Math.rand(0,50) === 0){
+                if (global.tech.plague === 1 && (global.tech.tau_roid >= 4 || global.tech.tau_whale >= 2) && (global.race['unlucky_intevention'] || Math.rand(0,50) === 0)){
                     global.tech.plague = 2;
                     global.race['quarantine'] = 1;
                     global.race['qDays'] = 0;
                     messageQueue(loc('tau_plague2',[govTitle(3)]),'info',false,['progress']);
                 }
-                else if (global.tech.plague === 2 && global.tech.tau_roid >= 5 && global.tech.tau_whale >= 2 && Math.rand(0,50) === 0){
+                else if (global.tech.plague === 2 && global.tech.tau_roid >= 5 && global.tech.tau_whale >= 2&& (global.race['unlucky_intevention'] || Math.rand(0,50) === 0)){
                     global.tech.plague = 3;
                     global.race['quarantine'] = 2;
                     global.race['qDays'] = 0;
                     messageQueue(loc('tau_plague3',[govTitle(3),races[global.race.species].home]),'info',false,['progress']);
                 }
                 else if (global.tech['isolation']){
-                    if (global.tech.plague < 5 && Math.rand(0,50) === 0){
+                    if (global.tech.plague < 5 && (global.race['unlucky_intevention'] || Math.rand(0,50) === 0)){
                         global.tech.plague = 5;
                         delete global.race['quarantine'];
                         delete global.race['qDays'];
@@ -12528,13 +12579,13 @@ function longLoop(){
                         drawTech();
                     }
                 }
-                else if (global.tech.plague === 3 && global.tech['disease'] && global.tech.disease >= 2 && Math.rand(0,50) === 0){
+                else if (global.tech.plague === 3 && global.tech['disease'] && global.tech.disease >= 2 && (global.race['unlucky_intevention'] || Math.rand(0,50) === 0)){
                     global.tech.plague = 4;
                     global.race['quarantine'] = 3;
                     global.race['qDays'] = 0;
                     messageQueue(loc('tau_plague5a',[races[global.race.species].home]),'info',false,['progress']);
                 }
-                else if (global.tech.plague === 4 && global.tech['disease'] && global.tech.disease >= 3 && Math.rand(0,50) === 0){
+                else if (global.tech.plague === 4 && global.tech['disease'] && global.tech.disease >= 3 && (global.race['unlucky_intevention'] || Math.rand(0,50) === 0)){
                     global.tech.plague = 5;
                     global.race['quarantine'] = 4;
                     global.race['qDays'] = 0;
@@ -12613,7 +12664,7 @@ function longLoop(){
             }
         }
 
-        if (!global.tech['xeno'] && global.galaxy['scout_ship'] && gal_on['scout_ship'] > 0 && Math.rand(0, 10) === 0){
+        if (!global.tech['xeno'] && global.galaxy['scout_ship'] && gal_on['scout_ship'] > 0 && (global.race['unlucky_intevention'] || Math.rand(0,10) === 0)){
             global.tech['xeno'] = 1;
             global.galaxy.scout_ship.count--;
             global.galaxy.scout_ship.on--;
@@ -12628,13 +12679,13 @@ function longLoop(){
             drawTech();
         }
 
-        if (global.galaxy['scavenger'] && global.tech['conflict'] && global.tech['conflict'] === 4 && gal_on['scavenger'] > 0 && Math.rand(0, 50) <= gal_on['scavenger']){
+        if (global.galaxy['scavenger'] && global.tech['conflict'] && global.tech['conflict'] === 4 && gal_on['scavenger'] > 0 && (global.race['unlucky_intevention'] || Math.rand(0, 50) <= gal_on['scavenger'])){
             global.tech['conflict'] = 5;
             messageQueue(loc('galaxy_scavenger_find'),'info',false,['progress']);
             drawTech();
         }
 
-        if (!global.tech['syndicate'] && !global.race['lone_survivor'] && global.tech['outer'] && Math.rand(0, 20) === 0){
+        if (!global.tech['syndicate'] && !global.race['lone_survivor'] && global.tech['outer'] && (global.race['unlucky_intervention'] || Math.rand(0, 20) === 0 )){
             messageQueue(loc('outer_syndicate',[govTitle(4)]),'info',false,['progress']);
             global.tech['syndicate'] = 1;
             global.space['syndicate'] = {};
@@ -12675,40 +12726,43 @@ function longLoop(){
     }
 
     // Event triggered
+    let mayorTime = 999;
+    if (astroSign === 'pisces'){
+        mayorTime -= astroVal('pisces')[0];
+    }
+    let minorTime = 850;
+    if (astroSign === 'pisces'){
+        minorTime -= astroVal('pisces')[0];
+    }
+    console.log(mayorTime, global.event.t);
     if (!global.race.seeded || (global.race.seeded && global.race['chose'])){
-        if (Math.rand(0,global.event.t) === 0){
+        if ((global.race['unlucky_intervention'] && mayorTime - 10 >= global.event.t /*10 days in between events*/) || (!global.race['unlucky'] && Math.rand(0,global.event.t) === 0)){
             let event_pool = eventList('major');
             if (event_pool.length > 0){
-                let event = event_pool[Math.floor(seededRandom(0,event_pool.length))];
+                let event = event_pool[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,event_pool.length))];
                 let msg = events[event].effect();
                 messageQueue(msg,'caution',false,['events','major_events']);
                 global.event.l = event;
             }
-            global.event.t = 999;
-            if (astroSign === 'pisces'){
-                global.event.t -= astroVal('pisces')[0];
-            }
+            global.event.t = mayorTime
         }
         else {
             global.event.t--;
         }
 
         if (global.race.species !== 'protoplasm'){
-            if (Math.rand(0,global.m_event.t) === 0){
+            if ((global.race['unlucky_intervention'] && minorTime - 8 >= global.m_event.t /*8 days in between events*/) || (!global.race['unlucky'] && Math.rand(0,global.m_event.t) === 0)){
                 let event_pool = eventList('minor');
                 if (!global.race['pet'] && ((global.race['catnip'] && global.race.catnip >= 2) || (global.race['anise'] && global.race.anise >= 2))){
                     event_pool = ['pet'];
                 }
                 if (event_pool.length > 0){
-                    let event = event_pool[Math.floor(seededRandom(0,event_pool.length))];
+                    let event = event_pool[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,event_pool.length))];
                     let msg = events[event].effect();
                     messageQueue(msg,false,false,['events','minor_events']);
                     global.m_event.l = event;
                 }
-                global.m_event.t = 850;
-                if (astroSign === 'pisces'){
-                    global.m_event.t -= astroVal('pisces')[1];
-                }
+                global.m_event.t = minorTime;
             }
             else {
                 global.m_event.t--;
@@ -12718,7 +12772,7 @@ function longLoop(){
         if (global.race['witch_hunter'] && global.resource.Sus.amount >= 100){
             let odds = 300 - global.resource.Sus.amount;
             if (odds < 1){ odds = 1; }
-            if (Math.rand(0,odds) === 0){
+            if (Math.rand(0,odds) === 0 || global.race['unlucky']){
                 let msg = events['witch_hunt_crusade'].effect();
                 messageQueue(msg,'caution',false,['events','major_events']);
             }
@@ -12726,7 +12780,7 @@ function longLoop(){
         if (global.race['witch_hunter'] && global.resource.Sus.amount >= 50 && global.civic.scientist.workers > 0){
             let odds = 250 - global.resource.Sus.amount * 2;
             if (odds < 50){ odds = 50; }
-            if (Math.rand(0,odds) === 0){
+            if (Math.rand(0,odds) === 0 || global.race['unlucky']){
                 let msg = events['witch_hunt'].effect();
                 messageQueue(msg,false,false,['events','minor_events']);
             }
@@ -12884,7 +12938,7 @@ function diffCalc(res,period){
 }
 
 function steelCheck(){
-    if (global.resource.Steel.display === false && Math.rand(0,1250) === 0){
+    if (global.resource.Steel.display === false && Math.rand(0,1250) === 0 && !global.race['unlucky']){
         global.resource.Steel.display = true;
         modRes('Steel',1);
         messageQueue(loc('steel_sample'),'info',false,['progress']);
@@ -12908,18 +12962,18 @@ function resourceAlt(){
 }
 
 function spyCaught(i){
-    let escape = global.race['elusive'] || Math.floor(seededRandom(0,3)) === 0 ? true : false;
+    let escape = global.race['elusive'] || (!global.race['unlucky'] && Math.floor(seededRandom(0,3)) === 0) ? true : false;
     let fathom = fathomCheck('satyr');
-    if (fathom > 0 && Math.floor(seededRandom(0,100)) <= fathom * 100){
+    if (fathom > 0 && Math.floor(global.race['unlucky'] ? 99 : seededRandom(0,100)) <= fathom * 100){
         escape = true;
     }
     if (!escape && global.civic.foreign[`gov${i}`].spy > 0){
         global.civic.foreign[`gov${i}`].spy -= 1;
     }
-    if (!escape && Math.floor(seededRandom(0,4)) === 0){
+    if (!escape && Math.floor(seededRandom(0,4)) === 0 || global.race['unlucky']){
         messageQueue(loc('event_spy_sellout',[govTitle(i)]),'danger',false,['spy']);
         let max = global.race['mistrustful'] ? 5 + traits.mistrustful.vars()[0] : 5;
-        global.civic.foreign[`gov${i}`].hstl += Math.floor(seededRandom(1,max));
+        global.civic.foreign[`gov${i}`].hstl += Math.floor(global.race['unlucky'] ? max - 1 : seededRandom(1,max));
         if (global.civic.foreign[`gov${i}`].hstl > 100){
             global.civic.foreign[`gov${i}`].hstl = 100;
         }

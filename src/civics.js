@@ -1574,30 +1574,30 @@ function war_campaign(gov){
     let highLuck = global.race['claws'] ? 20 : 16;
     let lowLuck = global.race['puny'] ? 3 : 5;
 
-    let luck = Math.floor(seededRandom(lowLuck,highLuck,true)) / 10;
+    let luck = (global.race['unlucky'] ? lowLuck : Math.floor(seededRandom(lowLuck,highLuck,true))) / 10;
     let army = armyRating(global.civic.garrison.raid,'army') * luck;
     let enemy = 0;
 
     switch(global.civic.garrison.tactic){
         case 0:
-            enemy = seededRandom(0,10,true);
-            global.civic.foreign[`gov${gov}`].hstl += Math.floor(seededRandom(0,2,true));
+            enemy = global.race['unlucky'] ? 9 : seededRandom(0,10,true);
+            global.civic.foreign[`gov${gov}`].hstl += Math.floor(global.race['unlucky'] ? 1 : seededRandom(0,2,true));
             break;
         case 1:
-            enemy = seededRandom(5,50,true);
-            global.civic.foreign[`gov${gov}`].hstl += Math.floor(seededRandom(0,3,true));
+            enemy = global.race['unlucky'] ? 49 : seededRandom(5,50,true);
+            global.civic.foreign[`gov${gov}`].hstl += Math.floor(global.race['unlucky'] ? 2 : seededRandom(0,3,true));
             break;
         case 2:
-            enemy = seededRandom(25,100,true);
-            global.civic.foreign[`gov${gov}`].hstl += Math.floor(seededRandom(1,5,true));
+            enemy = global.race['unlucky'] ? 99 : seededRandom(25,100,true);
+            global.civic.foreign[`gov${gov}`].hstl += Math.floor(global.race['unlucky'] ? 4 : seededRandom(1,5,true));
             break;
         case 3:
-            enemy = seededRandom(50,200,true);
-            global.civic.foreign[`gov${gov}`].hstl += Math.floor(seededRandom(4,12,true));
+            enemy = global.race['unlucky'] ? 199 : seededRandom(50,200,true);
+            global.civic.foreign[`gov${gov}`].hstl += Math.floor(global.race['unlucky'] ? 11 : seededRandom(4,12,true));
             break;
         case 4:
-            enemy = seededRandom(100,500,true);
-            global.civic.foreign[`gov${gov}`].hstl += Math.floor(seededRandom(10,25,true));
+            enemy = global.race['unlucky'] ? 949 : seededRandom(100,500,true);
+            global.civic.foreign[`gov${gov}`].hstl += Math.floor(global.race['unlucky'] ? 24 : seededRandom(10,25,true));
             break;
     }
     enemy = Math.floor(enemy * global.civic.foreign[`gov${gov}`].mil / 100);
@@ -1640,7 +1640,7 @@ function war_campaign(gov){
         if (deathCap > looters()){
             deathCap = looters();
         }
-        let death = Math.floor(seededRandom(0,deathCap,true));
+        let death = Math.floor(global.race['unlucky'] ? deathCap - 1 : seededRandom(0,deathCap,true));
         if (global.race['frail']){
             death += traits.frail.vars()[0];
         }
@@ -1675,7 +1675,11 @@ function war_campaign(gov){
             global.race.ocularPowerConfig.ds += Math.round(enemy * traits.ocular_power.vars()[1]);
         }
 
-        global.civic.garrison.wounded += Math.floor(seededRandom(wounded,global.civic.garrison.raid - death,true));
+        global.civic.garrison.wounded += Math.floor(
+            global.race['unlucky'] ? 
+                (global.race['rage'] ? Math.min(wounded, global.civic.garrison.raid - death) : Math.max(wounded, global.civic.garrison.raid - death)) : 
+            seededRandom(wounded,global.civic.garrison.raid - death,true)
+        );
 
         let gains = {
             Money: 0,
@@ -1719,12 +1723,12 @@ function war_campaign(gov){
             case 0:
                 {
                     let extra = ['Money'].concat(basic,common);
-                    looted.push(basic[Math.floor(seededRandom(0,basic.length,true))]);
-                    looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                    looted.push(basic[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,basic.length,true))]);
+                    looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     if (global.race['beast_of_burden']){
-                        looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                        looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     }
-                    if (global.resource.Steel.amount < 25 && global.tech['smelting'] && global.tech.smelting === 1 && Math.floor(seededRandom(0,20,true)) === 0){
+                    if (global.resource.Steel.amount < 25 && global.tech['smelting'] && global.tech.smelting === 1 && (global.race['unlucky_intervention'] || Math.floor(seededRandom(0,20,true)) === 0)){
                         looted.push('Steel');
                     }
                 }
@@ -1732,11 +1736,11 @@ function war_campaign(gov){
             case 1:
                 {
                     let extra = ['Money'].concat(basic,common,rare);
-                    looted.push(basic[Math.floor(seededRandom(0,basic.length,true))]);
-                    looted.push(common[Math.floor(seededRandom(0,common.length,true))]);
-                    looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                    looted.push(basic[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,basic.length,true))]);
+                    looted.push(common[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,common.length,true))]);
+                    looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     if (global.race['beast_of_burden']){
-                        looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                        looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     }
                 }
                 break;
@@ -1744,36 +1748,36 @@ function war_campaign(gov){
                 {
                     let extra = ['Money'].concat(basic,common,rare);
                     let extraB = common.concat(rare);
-                    looted.push(basic[Math.floor(seededRandom(0,basic.length,true))]);
-                    looted.push(common[Math.floor(seededRandom(0,common.length,true))]);
-                    looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
-                    looted.push(extraB[Math.floor(seededRandom(0,extraB.length,true))]);
+                    looted.push(basic[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,basic.length,true))]);
+                    looted.push(common[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,common.length,true))]);
+                    looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
+                    looted.push(extraB[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extraB.length,true))]);
                     if (global.race['beast_of_burden']){
-                        looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                        looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     }
                 }
                 break;
             case 3:
                 {
                     let extra = ['Money'].concat(basic,common,rare);
-                    looted.push(basic[Math.floor(seededRandom(0,basic.length,true))]);
-                    looted.push(common[Math.floor(seededRandom(0,common.length,true))]);
-                    looted.push(rare[Math.floor(seededRandom(0,rare.length,true))]);
-                    looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                    looted.push(basic[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,basic.length,true))]);
+                    looted.push(common[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,common.length,true))]);
+                    looted.push(rare[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,rare.length,true))]);
+                    looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     if (global.race['beast_of_burden']){
-                        looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                        looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     }
                 }
                 break;
             case 4:
                 {
                     let extra = ['Money'].concat(basic,common,rare);
-                    looted.push(basic[Math.floor(seededRandom(0,basic.length,true))]);
-                    looted.push(common[Math.floor(seededRandom(0,common.length,true))]);
-                    looted.push(rare[Math.floor(seededRandom(0,rare.length,true))]);
-                    looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                    looted.push(basic[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,basic.length,true))]);
+                    looted.push(common[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,common.length,true))]);
+                    looted.push(rare[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,rare.length,true))]);
+                    looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     if (global.race['beast_of_burden']){
-                        looted.push(extra[Math.floor(seededRandom(0,extra.length,true))]);
+                        looted.push(extra[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,extra.length,true))]);
                     }
                 }
                 break;
@@ -1785,43 +1789,43 @@ function war_campaign(gov){
         looted.forEach(function(goods){
             switch (goods){
                 case 'Money':
-                    gains[goods] += Math.floor(seededRandom(100,375,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 100 : seededRandom(100,375,true));
                     break;
                 case 'Food':
-                    gains[goods] += Math.floor(seededRandom(40,175,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 40 : seededRandom(40,175,true));
                     break;
                 case 'Lumber':
                 case 'Stone':
-                    gains[goods] += Math.floor(seededRandom(50,250,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 50 : seededRandom(50,250,true));
                     break;
                 case 'Copper':
                 case 'Iron':
                 case 'Aluminium':
-                    gains[goods] += Math.floor(seededRandom(35,125,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 35 : seededRandom(35,125,true));
                     break;
                 case 'Coal':
                 case 'Cement':
-                    gains[goods] += Math.floor(seededRandom(25,100,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 25 : seededRandom(25,100,true));
                     break;
                 case 'Steel':
                 case 'Chrysotile':
-                    gains[goods] += Math.floor(seededRandom(20,65,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 20 : seededRandom(20,65,true));
                     break;
                 case 'Titanium':
-                    gains[goods] += Math.floor(seededRandom(titanium_low,titanium_high,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? titanium_low : seededRandom(titanium_low,titanium_high,true));
                     break;
                 case 'Crystal':
-                    gains[goods] += Math.floor(seededRandom(1,5,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 1 : seededRandom(1,5,true));
                     break;
                 case 'Oil':
-                    gains[goods] += Math.floor(seededRandom(20,50,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 20 : seededRandom(20,50,true));
                     break;
                 case 'Iridium':
-                    gains[goods] += Math.floor(seededRandom(2,30,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 2 : seededRandom(2,30,true));
                     break;
                 case 'Alloy':
                 case 'Polymer':
-                    gains[goods] += Math.floor(seededRandom(5,38,true));
+                    gains[goods] += Math.floor(global.race['unlucky'] ? 5 : seededRandom(5,38,true));
                     break;
             }
         });
@@ -1851,7 +1855,7 @@ function war_campaign(gov){
         
         let revive = 0;
         if (global.race['revive']){
-            switch (global.city.calendar.temp){
+            switch (global.city.calendar.temp && !global.race['unlucky']){
                 case 0:
                     revive = Math.floor(seededRandom(0,Math.floor(death / traits.revive.vars()[0]),true));
                     break;
@@ -1871,7 +1875,7 @@ function war_campaign(gov){
             messageQueue(loc('civics_garrison_victorious',[death]),'success',false,['combat']);
         }
 
-        if (global.race['slaver'] && global.city['slave_pen']){
+        if (global.race['slaver'] && global.city['slave_pen'] && !global.race['unlucky']){
             let max = global.city.slave_pen.count * 4;
             if (max > global.resource.Slave.amount){
                 let slaves = Math.floor(seededRandom(0,global.civic.garrison.tactic + 2,true));
@@ -1884,7 +1888,7 @@ function war_campaign(gov){
                 }
             }
         }
-        if (global.race['infectious']){
+        if (global.race['infectious'] && !global.race['unlucky']){
             let infected = 0;
             switch(global.civic.garrison.tactic){
                 case 0:
@@ -1954,7 +1958,7 @@ function war_campaign(gov){
         if (deathCap > looters()){
             deathCap = looters();
         }
-        let death = Math.floor(seededRandom(1,deathCap,true));
+        let death = global.race['unlucky'] ? deathCap - 1 : Math.floor(seededRandom(1,deathCap,true));
         if (global.race['frail']){
             death += global.civic.garrison.tactic + traits.frail.vars()[1];;
         }
@@ -1983,10 +1987,13 @@ function war_campaign(gov){
             global.civic.garrison.wounded -= death;
             wounded -= death;
         }
-        global.civic.garrison.wounded += 1 + Math.floor(seededRandom(wounded,global.civic.garrison.raid - death,true));
+        global.civic.garrison.wounded += 1 + Math.floor(
+            global.race['unlucky'] ? 
+                (global.race['rage'] ? Math.min(wounded, global.civic.garrison.raid - death) : Math.max(wounded, global.civic.garrison.raid - death)) : 
+            seededRandom(wounded,global.civic.garrison.raid - death,true));
 
         let revive = 0;
-        if (global.race['revive']){
+        if (global.race['revive'] && !global.race['unlucky']){
             switch (global.city.calendar.temp){
                 case 0:
                     revive = Math.floor(seededRandom(0,Math.floor(death / traits.revive.vars()[3]),true));
@@ -2024,7 +2031,7 @@ export function armorCalc(dead){
         armor += global.tech['armor'];
     }
     if (global.race['high_pop']){
-        armor += Math.floor(seededRandom(0, armor * traits.high_pop.vars()[0],true));
+        armor += Math.floor(global.race['unlucky'] ? 0 : seededRandom(0, armor * traits.high_pop.vars()[0],true));
     }
     if (global.race['armored']){
         let armored = traits.armored.vars()[0] / 100;

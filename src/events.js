@@ -45,7 +45,7 @@ export const events = {
         },
         type: 'major',
         effect(){
-            global.race['inspired'] = Math.rand(300,600);
+            global.race['inspired'] = global.race['unlucky'] ? 300 : Math.rand(300,600);
             return loc('event_inspiration');
         }
     },
@@ -55,7 +55,7 @@ export const events = {
         },
         type: 'major',
         effect(){
-            global.race['motivated'] = Math.rand(300,600);
+            global.race['motivated'] = global.race['unlucky'] ? 300 : Math.rand(300,600);
             return loc('event_motivation');
         }
     },
@@ -67,7 +67,7 @@ export const events = {
         },
         type: 'major',
         effect(){
-            var loss = Math.rand(1,Math.round(global.resource.Lumber.amount / 4));
+            var loss = global.race['unlucky'] ? global.resource.Lumber.amount / 4 - 1 : Math.rand(1,Math.round(global.resource.Lumber.amount / 4));
             var res = global.resource.Lumber.amount - loss;
             if (res < 0){ res = 0; }
             global.resource.Lumber.amount = res;
@@ -109,7 +109,7 @@ export const events = {
             }
             at_risk = Math.floor(at_risk * 0.1);
 
-            let loss = Math.rand(0,at_risk);
+            let loss = global.race['unlucky'] ? Math.max(0, at_risk - 1) : Math.rand(0,at_risk);
             global.resource[global.race.species].amount -= loss;
             global.civic[global.civic.d_job].workers -= loss;
             if (global.civic[global.civic.d_job].workers < 0){
@@ -124,7 +124,7 @@ export const events = {
                 else if (global.city.biome === 'desert' || global.city.biome === 'volcanic'){
                     time /= 2;
                 }
-                global.city['firestorm'] = Math.rand(time,time * 10);
+                global.city['firestorm'] = global.race['unlucky'] ? time * 10 - 1 : Math.rand(time,time * 10);
             }
 
             return loc(global.city.biome === 'oceanic' ? 'event_flare2' : 'event_flare',[planet, loss.toLocaleString()]);
@@ -145,11 +145,11 @@ export const events = {
         effect(){
             let army = armyRating(garrisonSize(),'army',global.civic.garrison.wounded);
             let eAdv = global.tech['high_tech'] ? global.tech['high_tech'] + 1 : 1;
-            let enemy = Math.rand(25,50) * eAdv;
+            let enemy = global.race['unlucky'] ? 49 : Math.rand(25,50) * eAdv;
 
             let injured = global.civic.garrison.wounded > garrisonSize() ? garrisonSize() : global.civic.garrison.wounded;
-            let killed =  Math.floor(seededRandom(0,injured));
-            let wounded = Math.floor(seededRandom(0,garrisonSize() - injured));
+            let killed =  Math.floor(global.race['unlucky'] ? Math.max(0, injured - 1) : seededRandom(0,injured));
+            let wounded = Math.floor(global.race['unlucky'] ? Math.max(0, garrisonSize() - injured - 1) : seededRandom(0,garrisonSize() - injured));
             if (global.race['instinct']){
                 killed = Math.round(killed / 2);
                 wounded = Math.round(wounded / 2);
@@ -171,7 +171,7 @@ export const events = {
                 return loc('event_raid1',[killed.toLocaleString(),wounded.toLocaleString()]);
             }
             else {
-                let loss = Math.rand(1,Math.round(global.resource.Money.amount / 4));
+                let loss = global.race['unlucky'] ? Math.max(1, Math.round(global.resource.Money.amount / 4)) : Math.rand(1,Math.round(global.resource.Money.amount / 4));
                 if (loss <= 0){
                     return loc('event_raid1',[killed.toLocaleString(),wounded.toLocaleString()]);
                 }
@@ -202,8 +202,8 @@ export const events = {
             let enemy = (global.civic.foreign.gov0.mil + global.civic.foreign.gov1.mil + global.civic.foreign.gov2.mil) * eAdv;
 
             let injured = global.civic.garrison.wounded > garrisonSize() ? garrisonSize() : global.civic.garrison.wounded;
-            let killed =  Math.floor(seededRandom(0,injured));
-            let wounded = Math.floor(seededRandom(0,garrisonSize() - injured));
+            let killed =  Math.floor(global.race['unlucky'] ? Math.max(0, injured - 1) : seededRandom(0,injured));
+            let wounded = Math.floor(global.race['unlucky'] ? Math.max(0, garrisonSize() - injured - 1) : seededRandom(0,garrisonSize() - injured));
 
             if (global.race['instinct']){
                 killed = Math.round(killed / 2);
@@ -226,7 +226,7 @@ export const events = {
                 return loc('event_siege1',[killed.toLocaleString(),wounded.toLocaleString()]);
             }
             else {
-                var loss = Math.rand(1,Math.round(global.resource.Money.amount / 2));
+                let loss = global.race['unlucky'] ? Math.max(1, Math.round(global.resource.Money.amount / 2)) : Math.rand(1,Math.round(global.resource.Money.amount / 2));
                 var res = global.resource.Money.amount - loss;
                 if (res < 0){ res = 0; }
                 global.resource.Money.amount = res;
@@ -304,8 +304,9 @@ export const events = {
         },
         type: 'major',
         effect(){            
-            let killed = Math.floor(seededRandom(0,global.civic.garrison.wounded));
-            let wounded = Math.floor(seededRandom(0,global.civic.garrison.workers - global.civic.garrison.wounded));
+            let killed = Math.floor(global.race['unlucky'] ? Math.max(0, global.civic.garrison.wounded - 1) : seededRandom(0,global.civic.garrison.wounded));
+            let wounded = Math.floor(global.race['unlucky'] ? Math.max(0, global.civic.garrison.workers - global.civic.garrison.wounded - 1) : seededRandom(0,global.civic.garrison.workers - global.civic.garrison.wounded));
+            //unlucky does not account for rage as this event never happens with rage anyways
             if (global.race['instinct']){
                 killed = Math.round(killed / 2);
                 wounded = Math.round(wounded / 2);
@@ -427,7 +428,7 @@ export const events = {
         },
         effect(){
             global.civic.govern['protest'] = Math.rand(30,60);
-            switch(Math.rand(0,10)){
+            switch(global.race['unlucky'] ? 9 : Math.rand(0,10)){
                 case 0:
                     return loc('event_protest0',[housingLabel('small')]);
                 case 1:
@@ -449,7 +450,7 @@ export const events = {
                 case 8:
                     return loc('event_protest8');
                 case 9:
-                    global.civic.govern['protest'] = Math.rand(60,90);
+                    global.civic.govern['protest'] = global.race['unlucky'] ? 89 : Math.rand(60,90);
                     return loc('event_protest9');
             }
         }
@@ -463,7 +464,7 @@ export const events = {
             return govActive('muckraker',0) ? true : false;
         },
         effect(){
-            global.civic.govern['scandal'] = Math.rand(15,90);
+            global.civic.govern['scandal'] = global.race['unlucky'] ? 89 : Math.rand(15,90);
             switch(Math.rand(0,10)){
                 case 0:
                     return loc('event_scandal0');
@@ -594,12 +595,13 @@ export const events = {
         },
         type: 'major',
         effect(){
-            let dead = Math.floor(seededRandom(2,jobScale(10)));
+            let dead = Math.floor(global.race['unlucky'] ? jobScale(10) - 1 : seededRandom(2,jobScale(10)));
             let type = Math.floor(seededRandom(0,10));
             if (dead > global.resource[global.race.species].amount){ dead = global.resource[global.race.species].amount; }
             global.resource[global.race.species].amount -= dead;
             blubberFill(dead);
             if(type === 7){
+                console.log(flib('name'));
                 return loc('event_chicken',[loc(`event_chicken_eaten${type}`, [flib('name')]),dead,loc(`event_chicken_seasoning${Math.floor(seededRandom(0,10))}`)]);
             }
             return loc('event_chicken',[loc(`event_chicken_eaten${type}`),dead,loc(`event_chicken_seasoning${Math.floor(seededRandom(0,10))}`)]);
@@ -637,7 +639,7 @@ export const events = {
         },
         type: 'major',
         effect(){
-            switch (Math.rand(0,5)){
+            switch (global.race['unlucky'] ? (!global.race['distracted'] ? 3 : 1) : Math.rand(0,5)){
                 case 0:
                     {
                         let res = 'Money';
@@ -699,7 +701,7 @@ export const events = {
                     }
                 case 3:
                     {
-                        global.race['distracted'] = Math.rand(200,600);
+                        global.race['distracted'] = global.race['unlucky'] ? 599 : Math.rand(200,600);
                         return loc(`event_m_curious3`,[races[global.race.species].name]);
                     }
                 case 4:
@@ -773,8 +775,13 @@ export const events = {
         type: 'minor',
         effect(){
             global.resource[global.race.species].amount--;
+            let type = Math.floor(Math.rand(0,10));
             blubberFill(1);
-            return loc('event_chicken',[loc(`event_chicken_eaten${Math.rand(0,10)}`),1,loc(`event_chicken_seasoning${Math.floor(seededRandom(0,10))}`)]);
+            if(type === 7){
+                console.log(flib('name'));
+                return loc('event_chicken',[loc(`event_chicken_eaten${type}`, [flib('name')]),1,loc(`event_chicken_seasoning${Math.floor(seededRandom(0,10))}`)]);
+            }
+            return loc('event_chicken',[loc(`event_chicken_eaten${type}`),1,loc(`event_chicken_seasoning${Math.floor(seededRandom(0,10))}`)]);
         }
     },
     fight:{ 
@@ -790,7 +797,7 @@ export const events = {
         },
         type: 'minor',
         effect(){
-            let dead = Math.floor(seededRandom(1,jobScale(traits.aggressive.vars()[1] + 1)));
+            let dead = Math.floor(global.race['unlucky'] ? jobScale(traits.aggressive.vars()[1]) : seededRandom(1,jobScale(traits.aggressive.vars()[1] + 1)));
             if (dead > global.resource[global.race.species].amount){ dead = global.resource[global.race.species].amount; }
             global.resource[global.race.species].amount -= dead;
             blubberFill(dead);
@@ -867,7 +874,7 @@ export const events = {
         return cash;
     }),
     pickpocket: basicEvent('pickpocket','currency',function(){
-        let cash = Math.rand(1,10);
+        let cash = global.race['unlucky'] ? 9 : Math.rand(1,10);
         global.resource.Money.amount -= cash;
         if (global.resource.Money.amount < 0){
             global.resource.Money.amount = 0;
@@ -929,7 +936,7 @@ export const events = {
     parade: basicEvent('parade','world_control'),
     crop_circle: basicEvent('crop_circle','agriculture'),
     llama: basicEvent('llama','primitive',function(){
-        let food = Math.rand(25,100);
+        let food = global.race['unlucky'] ? 99 : Math.rand(25,100);
         global.resource.Food.amount -= food;
         if (global.resource.Food.amount < 0){
             global.resource.Food.amount = 0;
@@ -991,10 +998,11 @@ export const events = {
                 return loc(`event_${global.race.pet.type}_interaction${interaction}`,[loc(`event_${global.race.pet.type}_name${global.race.pet.name}`)]);
             }
             else {
-                let pet = global.race['catnip'] && global.race['catnip'] >= 1 ? 'cat' : (global.race['anise'] && global.race['anise'] >= 1 ? 'dog' : (Math.rand(0,2) === 0 ? 'cat' : 'dog'));
+                let pet = global.race['catnip'] && global.race['catnip'] >= 1 ? 'cat' : (global.race['anise'] && global.race['anise'] >= 1 ? 'dog' : (Math.rand(0,2) === 0 || global.race['unlucky'] ? 'cat' : 'dog'));
+                //if you dare wish for a pet while unlucky, you'll get a black cat
                 global.race['pet'] = {
                     type: pet,
-                    name: pet === 'cat' ? Math.rand(0,12) : Math.rand(0,10),
+                    name: pet === 'cat' ? global.race['unlucky'] ? 10 : Math.rand(0,12) : Math.rand(0,10),
                     event: 0,
                     pet: 0
                 };
@@ -1053,11 +1061,11 @@ function slaveLoss(type,string){
 function pillaged(gov,serious){
     let army = armyRating(garrisonSize(),'army',global.civic.garrison.wounded);
     let eAdv = global.tech['high_tech'] ? global.tech['high_tech'] + 1 : 1;
-    let enemy = (gov === 'witchhunt' ? 1000 : global.civic.foreign[gov].mil) * (1 + Math.floor(seededRandom(0,10) - 5) / 10) * eAdv;
+    let enemy = (gov === 'witchhunt' ? 1000 : global.civic.foreign[gov].mil) * (1 + Math.floor((global.race['unlucky'] ? 9 : seededRandom(0,10)) - 5) / 10) * eAdv;
 
     let injured = global.civic.garrison.wounded > garrisonSize() ? garrisonSize() : global.civic.garrison.wounded;
-    let killed = garrisonSize() > 0 ? Math.floor(seededRandom(1,injured)) : 0;
-    let wounded = Math.floor(seededRandom(0,garrisonSize() - injured));
+    let killed = garrisonSize() > 0 ? Math.floor(global.race['unlucky'] ? Math.max(0, injured - 1) : seededRandom(1,injured)) : 0;
+    let wounded = Math.floor(global.race['unlucky'] ? Math.max(0, garrisonSize() - injured - 1) : seededRandom(0,garrisonSize() - injured));
     if (global.race['instinct']){
         killed = Math.round(killed / 2);
         wounded = Math.round(wounded / 2);
@@ -1087,7 +1095,7 @@ function pillaged(gov,serious){
         targets.push('Money');
         targets.forEach(function(res){
             if (global.resource[res] && global.resource[res].display && global.resource[res].amount > 0){
-                let loss = Math.rand(1,Math.round(global.resource[res].amount / limiter));
+                let loss = global.race['unlucky'] ? Math.round(global.resource[res].amount / limiter - 1) : Math.rand(1,Math.round(global.resource[res].amount / limiter));
                 let remain = global.resource[res].amount - loss;
                 if (remain < 0){ remain = 0; }
                 global.resource[res].amount = remain;
@@ -1187,6 +1195,44 @@ export function eventList(type){
             event_pool.push(event);
         }
     });
+
+    if(global.race['unlucky']){
+        let badList = [];
+        if(type === 'major'){
+            badList = ['flare', 'tax_revolt', 'witch_hunt_crusade', 'siege', 'protest', 'scandal', 'pillage4', 'pillage3', 'pillage2', 'pillage1', 'raid', 'chicken_feast', 'm_curious', 'terrorist', 'brawl', 'mine_collapse', 'slave_death1', 'slave_death2', 'fire', 'inspiration', 'motivation'];
+            if(global.race['rage']){
+                badList.splice(badList.indexOf('terrorism'), 1);
+            }
+            if(global.civic.govern.type === 'oligarchy' ? 55 : 35 > global.civic.taxes.tax_rate){
+                badList.splice(badList.indexOf('tax_revolt'), 1);
+            }
+            if(global.city.biome === 'oceanic'){
+                badList.splice(badList.indexOf('flare'), 1);
+            }
+            for(let i=0;i<badList.length; i++){
+                if(event_pool.includes(badList[i])){
+                    event_pool = [badList[i]];
+                    break;
+                }
+            }
+        }
+        if(type === 'minor'){
+            badList = ['fight', 'witch_hunt', 'chicken', 'slave_escape3', 'slave_escape2', 'pickpocket', 'llama', 'cat'];
+            if(global.city.temp === 0 && (global.race['chilled'] || global.race['heat_intolerance'] || global.race['lazy']) && !global.race['cold_intolerance']){
+                badList.unshift('heatwave');
+            }
+            else if(global.city.temp === 2 && (global.race['smoldering'] || global.race['cold_intolerance'] || global.race['cold_blooded'] && !global.race['heat_intolerance'])){
+                badList.unshift('coldsnap');
+            }
+            for(let i=0;i<badList.length; i++){
+                if(event_pool.includes(badList[i])){
+                    event_pool = [badList[i]];
+                    break;
+                }
+            }
+        }
+    }
+
     return event_pool;
 }
 
@@ -1200,7 +1246,7 @@ function tax_revolt(){
     let risk = (global.civic.taxes.tax_rate - ramp) * 0.04;
     Object.keys(global.resource).forEach(function (res) {
         if (!special_res.includes(res)){
-            let loss = Math.rand(1,Math.round(global.resource[res].amount * risk));
+            let loss = global.race['unlucky'] ? Math.max(1, Math.round(global.resource[res].amount * risk - 1)) : Math.rand(1,Math.round(global.resource[res].amount * risk));
             let remain = global.resource[res].amount - loss;
             if (remain < 0){ remain = 0; }
             global.resource[res].amount = remain;

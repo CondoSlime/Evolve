@@ -2425,7 +2425,7 @@ export function drawPet(){
             else {
                 patterns.push('patched');
             }
-            pattern = patterns[Math.rand(0,patterns.length)];
+            pattern = patterns[global.race['unlucky'] ? 0 : Math.rand(0,patterns.length)];
             global.race.pet['pattern'] = pattern;
         }
 

@@ -4441,6 +4441,9 @@ export function setChallengeScreen(){
     if (global.race.universe === 'evil' && ((global.stats.achieve['godslayer'] && global.stats.achieve.godslayer['e']) || global['sim'])){
         global.evolution['warlord'] = { count: 0 };
     }
+    if(global.stats.achieve['godslayer'] || global['sim']){
+        global.evolution['unlucky'] = { count:0 };
+    }
     if (global.stats.achieve['ascended'] || global.stats.achieve['corrupted'] || global['sim']){
         global.evolution['truepath'] = { count: 0 };
     }
@@ -4531,6 +4534,9 @@ export function setChallengeScreen(){
     }
     if (global.race.universe === 'evil' && ((global.stats.achieve['godslayer'] && global.stats.achieve.godslayer['e']) || global['sim'])){
         addAction('evolution','warlord');
+    }
+    if(global.stats.achieve['godslayer'] || global['sim']){
+        addAction('evolution','unlucky');
     }
     if (global['sim']){
         exitSimulation();
@@ -4948,7 +4954,7 @@ export function buildTemplate(key, region){
                                 global.civic[global.civic.d_job].workers--;
                                 global.stats.sac++;
                                 blubberFill(1);
-                                modRes('Food', Math.rand(250,1000), true);
+                                modRes('Food', global.race['unlucky'] ? 250 : Math.rand(250,1000), true);
                                 let low = 300;
                                 let high = 600;
                                 if (global.tech['sacrifice']){
@@ -4967,7 +4973,10 @@ export function buildTemplate(key, region){
                                             break;
                                     }
                                 }
-                                switch (global.race['kindling_kindred'] || global.race['smoldering'] ? Math.rand(0,4) : Math.rand(0,5)){
+                                if(global.race['unlucky']){
+                                    high = low;
+                                }
+                                switch (global.race['kindling_kindred'] || global.race['smoldering'] ? (global.race['unlucky'] ? 1 : Math.rand(0,4)) : (global.race['unlucky'] ? 4 : Math.rand(0,5))){
                                     case 0:
                                         global.city.s_alter.rage += Math.rand(low,high);
                                         break;
@@ -5299,6 +5308,7 @@ const advancedChallengeList = {
     'gravity_well': {t: 'c', e: 'escape_velocity' },
     'witch_hunter': {t: 'c', e: 'soul_sponge' },
     //'storage_wars': {t: 'c', e: '???' },
+    'unlucky': {t: 'c', e: 'unlucky'},
     'simulation': {t: 'c', e: 'thereisnospoon' },
     'junker': {t: 's', e: 'extinct_junker' },
     'cataclysm': {t: 's', e: 'iron_will' },
@@ -5306,7 +5316,7 @@ const advancedChallengeList = {
     'truepath': {t: 's', e: 'pathfinder' },
     'lone_survivor': {t: 's', e: 'adam_eve' },
     'fasting': {t: 's', e: 'endless_hunger' },
-    'warlord': {t: 's', e: 'what_is_best' },
+    'warlord': {t: 's', e: 'what_is_best' }
 };
 Object.keys(advancedChallengeList).forEach(challenge => actions.evolution[challenge] = {
     id: `evolution-${challenge}`,
@@ -6666,7 +6676,7 @@ export function setPlanet(opt){
     var orbit = 365;
     let geology = {};
     let custom = false;
-
+    //should I make unlucky give you 25 copies of the same garbage planet? Oh, the dilemma
     if (global.stats.achieve['lamentis'] && global.stats.achieve.lamentis.l >= 4 && global.custom['planet'] && opt.custom && opt.custom.length > 0 && Math.floor(seededRandom(0,10)) === 0){
         custom = opt.custom[Math.floor(seededRandom(0,opt.custom.length))];
         let target = custom.split(':');
@@ -8517,11 +8527,38 @@ function sentience(){
         delete global.race['slow'];
     }
 
+    if(global.race['unlucky']){
+        global.race['unlucky_intervention'] = 1; //signifies exceptions to unlucky to avoid softlocks. Causes maximum luck in that case.
+    }
+
     if (global.race['no_crispr'] || global.race['badgenes']){
         let repeat = global.race['badgenes'] ? 3 : 1;
+        let badTrait = false;
+        if(global.race['unlucky']){
+            let badList = ['slow', 'lazy', 'freespirit', 'hooved', 'heavy', 'pathetic', 'pyrophobia', 'slow_regen'];
+            if(global.race['cataclysm']){
+                badList = ['slow', 'dumb', 'heavy', 'freespirit', 'pyrophobia'];
+            }
+            if(global.race['truepath']){
+                badList = ['slow', 'slow_regen', 'lazy', 'hooved', 'heavy', 'pyrophobia', 'freespirit'];
+            }
+            if(global.race['lone_survivor']){
+                badList = ['slow', 'dumb', 'lazy', 'heavy', 'pyrophobia'];
+            }
+            if(global.race['fasting']){
+                badList = ['angry', 'slow', 'gluttony', 'lazy',' freespirit', 'hooved', 'heavy', 'pathetic', 'pyrophobia', 'slow_regen'];
+            }
+            badList.push(...neg_roll_traits);
+            for(let i=0;i<badList.length; i++){
+                if(!global.race[badList[i]] && neg_roll_traits.includes(badList[i] /* just in case */)){
+                    badTrait = badList[i];
+                    break;
+                }
+            }
+        }
         for (let j=0; j<repeat; j++){
             for (let i=0; i<10; i++){
-                let trait = neg_roll_traits[Math.rand(0,neg_roll_traits.length)];
+                let trait = badTrait || neg_roll_traits[Math.rand(0,neg_roll_traits.length)];
                 if (global.race[trait]){
                     if (global.race[trait] == 0.25){
                         continue;
@@ -8788,7 +8825,7 @@ function sentience(){
     }
 
     if (global.race.species === 'tortoisan'){
-        let color = Math.floor(seededRandom(100));
+        let color = Math.floor(global.race['unlucky'] /* no fancy shells for unlucky people */ ? 1 : seededRandom(100));
         if (color === 99){
             global.race['shell_color'] = 'rainbow';
         }
@@ -8816,7 +8853,7 @@ function sentience(){
     }
 
     if (global.race.species === 'vulpine'){
-        let color = Math.floor(seededRandom(100));
+        let color = Math.floor(global.race['unlucky'] /* no fancy furs either */ ? 1 : seededRandom(100));
         if (color >= 85){
             global.race['fox_color'] = 'white';
         }

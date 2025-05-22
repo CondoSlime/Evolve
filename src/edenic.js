@@ -958,14 +958,14 @@ const edenicModules = {
                     messageQueue(loc('eden_siege_fortress_fail'),'warning',false,['combat']);
                 }
                 else {
-                    let dead = armySize - remain + Math.floor(seededRandom(0,jobScale(global.eden.fortress.detector),true));
+                    let dead = armySize - remain + Math.floor(global.race['unlucky'] ? jobScale(global.eden.fortress.detector) - 1 : seededRandom(0,jobScale(global.eden.fortress.detector),true));
                     dead = deadCalc(dead, armySize);
                     remain = armySize - dead;
 
                     let troops = Math.ceil(armyRating(remain,'Troops'));
-                    let damage = Math.floor(seededRandom(0,troops,true) / 50);
+                    let damage = Math.floor((global.race['unlucky_intervention'] ? troops - 1 : seededRandom(0,troops,true)) / 50);
 
-                    let more_dead = Math.floor(seededRandom(0,remain,true));
+                    let more_dead = Math.floor(global.race['unlucky'] ? Math.max(0, remain - 1) : seededRandom(0,remain,true));
                     more_dead = deadCalc(more_dead, remain);
                     remain = remain - more_dead;
                     dead += more_dead;
@@ -973,7 +973,7 @@ const edenicModules = {
                     global.civic.garrison.protest += dead;
                     soldierDeath(dead);
 
-                    global.civic.garrison.wounded += Math.floor(seededRandom(0,remain,true));
+                    global.civic.garrison.wounded += Math.floor(global.race['unlucky'] ? (global.race['rage'] ? 0 : Math.max(remain - 1)) : seededRandom(0,remain,true));
                     if (global.civic.garrison.wounded > global.civic.garrison.workers){
                         global.civic.garrison.wounded = global.civic.garrison.workers;
                     }
@@ -1035,17 +1035,17 @@ const edenicModules = {
                     messageQueue(loc('eden_raid_fortress_fail'),'warning',false,['combat']);
                 }
                 else {
-                    let dead = armySize - remain + Math.floor(seededRandom(0,jobScale(global.eden.fortress.detector / 2),true));
+                    let dead = armySize - remain + Math.floor(global.race['unlucky'] ? jobScale(global.eden.fortress.detector / 2) : seededRandom(0,jobScale(global.eden.fortress.detector / 2),true));
                     dead = deadCalc(dead, armySize);
                     remain = armySize - dead;
 
                     let troops = Math.ceil(armyRating(remain,'Troops'));
-                    let damage = Math.floor(seededRandom(0,troops,true) / 50);
+                    let damage = Math.floor((global.race['unlucky'] ? troops - 1 : seededRandom(0,troops,true)) / 50);
 
                     global.civic.garrison.protest += dead;
                     soldierDeath(dead);
 
-                    global.civic.garrison.wounded += Math.floor(seededRandom(0,remain,true));
+                    global.civic.garrison.wounded += Math.floor(global.race['unlucky'] ? (global.race['rage'] ? 0 : Math.max(remain - 1)) : seededRandom(0,remain,true));
                     if (global.civic.garrison.wounded > global.civic.garrison.workers){
                         global.civic.garrison.wounded = global.civic.garrison.workers;
                     }
@@ -1091,15 +1091,15 @@ const edenicModules = {
                     return false;
                 }
 
-                if (armyRating(jobScale(1),'Troops') > Math.floor(seededRandom(0,global.eden.fortress.detector * 2,true))){
-                    let dead = Math.floor(seededRandom(0,armySize,true));
+                if (armyRating(jobScale(1),'Troops') > Math.floor(global.race['unlucky'] ? global.eden.fortress.detector * 2 - 1 : seededRandom(0,global.eden.fortress.detector * 2,true))){
+                    let dead = Math.floor(global.race['unlucky'] ? armySize - 1 : seededRandom(0,armySize,true));
                     dead = deadCalc(dead, armySize);
                     let remain = armySize - dead;
 
                     global.civic.garrison.protest += dead;
                     soldierDeath(dead);
 
-                    global.civic.garrison.wounded += Math.floor(seededRandom(0,remain,true));
+                    global.civic.garrison.wounded += Math.floor(global.race['unlucky'] ? (global.race['rage'] ? 0 : Math.max(remain - 1)) : seededRandom(0,remain,true));
                     if (global.civic.garrison.wounded > global.civic.garrison.workers){
                         global.civic.garrison.wounded = global.civic.garrison.workers;
                     }
@@ -1276,7 +1276,7 @@ const edenicModules = {
                     }
 
                     let redraw = false;
-                    global.eden.enemy_isle[target] -= Math.floor(seededRandom(25,75));
+                    global.eden.enemy_isle[target] -= Math.floor(global.race['unlucky'] ? 25 : seededRandom(25,75));
                     if (global.eden.enemy_isle[target] <= 0){
                         global.eden.enemy_isle[target] = 0;
                         redraw = true;
@@ -2329,7 +2329,7 @@ export function apotheosisProjection(){
 
 function deadCalc(dead, armySize){
     let armor = armorCalc(dead);
-    dead -= Math.floor(seededRandom(0,armor,true));
+    dead -= Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,armor,true));
     if (dead > armySize){ dead = armySize }
     else if (dead < 0){ dead = 0; }
     return Math.floor(dead);

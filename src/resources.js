@@ -1478,7 +1478,7 @@ export function marketItem(mount,market_item,name,color,full){
                         global.resource[res].amount += amount;
                         global.resource.Money.amount -= Math.round(value * amount);
 
-                        global.resource[res].value += Number((amount / Math.rand(1000,10000)).toFixed(2));
+                        global.resource[res].value += Number((amount / (global.race['unlucky'] ? 1000 : Math.rand(1000,10000))).toFixed(2));
                     }
                 }
             },
@@ -1510,7 +1510,7 @@ export function marketItem(mount,market_item,name,color,full){
                         global.resource[res].amount -= amount;
                         global.resource.Money.amount += Math.round(price * amount);
 
-                        global.resource[res].value -= Number((amount / Math.rand(1000,10000)).toFixed(2));
+                        global.resource[res].value -= Number((amount / (global.race['unlucky'] ? 1000 : Math.rand(1000,10000))).toFixed(2));
                         if (global.resource[res].value < Number(resource_values[res] / 2)){
                             global.resource[res].value = Number(resource_values[res] / 2);
                         }

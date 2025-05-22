@@ -43,7 +43,7 @@ const spaceProjects = {
                         if (!checkControlling('gov0')){ sabotage++; }
                         if (!checkControlling('gov1')){ sabotage++; }
                         if (!checkControlling('gov2')){ sabotage++; }
-                        if (Math.floor(seededRandom(0,sabotage)) !== 0){
+                        if (Math.floor(global.race['unlucky'] ? sabotage - 1 : seededRandom(0,sabotage)) !== 0){
                             messageQueue(loc('space_home_test_launch_action_fail'),'danger',false,['progress']);
                             return 0;
                         }

@@ -6772,13 +6772,18 @@ export function randomMinorTrait(ranks){
         }
     });
     if (trait_list.length === 0){
-        Object.keys(traits).forEach(function (t){
-            if (traits[t].type === 'minor'){
-                trait_list.push(t);
-            }
-        });
+        if(global.race['unlucky']){
+            trait_list = ['industrious'];
+        }
+        else{
+            Object.keys(traits).forEach(function (t){
+                if (traits[t].type === 'minor'){
+                    trait_list.push(t);
+                }
+            });
+        }
     }
-    let trait = trait_list[Math.floor(seededRandom(0,trait_list.length))];
+    let trait = trait_list[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,trait_list.length))];
     if (global.race[trait]){
         global.race[trait] += ranks;
     }
@@ -8167,18 +8172,18 @@ function minorWish(parent){
                         }
                     }
 
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[Math.floor(seededRandom(0,options.length))]; //unlucky may have this one
                     switch (spell){
                         case 'inspire':
                         {
-                            global.race['inspired'] = Math.floor(seededRandom(300,600));
+                            global.race['inspired'] = Math.floor( global.race['unlucky'] ? 300 : seededRandom(300,600));
                             let msg = loc('event_inspiration');
                             messageQueue(msg,false,false,['events','major_events']);
                             break;
                         }
                         case 'know':
                         {
-                            let gain = Math.floor(seededRandom(global.resource.Knowledge.max / 5,global.resource.Knowledge.max / 2));
+                            let gain = Math.floor(global.race['unlucky'] ? global.resource.Knowledge.max / 5 : seededRandom(global.resource.Knowledge.max / 5,global.resource.Knowledge.max / 2));
                             global.resource.Knowledge.amount += gain;
                             if (global.resource.Knowledge.amount > global.resource.Knowledge.max){
                                 global.resource.Knowledge.amount = global.resource.Knowledge.max;
@@ -8230,7 +8235,7 @@ function minorWish(parent){
                         options.push('taxes');
                     }
 
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[global.race['unlucky'] ? 1 : Math.floor(seededRandom(0,options.length))];
                     switch (spell){
                         case 'money':
                         {
@@ -8251,13 +8256,13 @@ function minorWish(parent){
                         }
                         case 'robbery':
                         {
-                            let cash = Math.floor(seededRandom(1,Math.round(global.resource.Money.max / 8)));
+                            let cash = global.race['unlucky'] ? 1 : Math.floor(seededRandom(1,Math.round(global.resource.Money.max / 8)));
                             global.resource.Money.amount += cash;
                             if (global.resource.Money.amount > global.resource.Money.max){
                                 global.resource.Money.amount = global.resource.Money.max;
                             }
                             let victim = Math.floor(seededRandom(0,10));
-                            global.race.wishStats.bad += Math.floor(seededRandom(50,100));
+                            global.race.wishStats.bad += global.race['unlucky'] ? 99 : Math.floor(seededRandom(50,100));
                             messageQueue(loc('wish_robbery',[loc(`wish_robbery${victim}`),sizeApproximation(cash)]),'warning',false,['events']);
                             break;
                         }
@@ -8269,7 +8274,7 @@ function minorWish(parent){
                     global.race.wishStats.minor = traits.wish.vars()[0] / 3;
 
                     let options = ['useless','common','rare','stolen','2xcommon','2xrare'];
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[Math.floor(global.race['unlucky'] ? 3 : seededRandom(0,options.length))];
 
                     let resList = [];
                     [
@@ -8286,7 +8291,7 @@ function minorWish(parent){
                             'Deuterium','Neutronium','Adamantite','Nano_Tube','Graphene','Stanene','Bolognium',
                             'Vitreloy','Orichalcum','Infernite','Elerium','Soul_Gem'
                         ].forEach(function(res){
-                            if (global.resource[res].display && (res === 'Soul_Gem' || global.resource[res].amount * 1.05 < global.resource[res].max)){
+                            if (global.resource[res].display && ((res === 'Soul_Gem' && !global.race['unlucky']) || global.resource[res].amount * 1.05 < global.resource[res].max)){
                                 resList.push(res);
                             }
                         });
@@ -8312,7 +8317,7 @@ function minorWish(parent){
                                 global.resource[res].amount += gain;
                             }
                             else {
-                                gain = Math.floor(seededRandom(1,Math.floor(global.resource[res].max * 0.25)));
+                                gain = Math.floor(global.race['unlucky'] ? 1 : seededRandom(1,Math.floor(global.resource[res].max * 0.25)));
                                 global.resource[res].amount += gain;
                                 if (global.resource[res].amount > global.resource[res].max){
                                     global.resource[res].amount = global.resource[res].max;
@@ -8328,7 +8333,7 @@ function minorWish(parent){
                             messageQueue(loc('wish_gain_res',[sizeApproximation(gains[0]),global.resource[picked[0]].name]),'warning',false,['events']);
                         }
                         else if (spell === 'stolen'){
-                            global.race.wishStats.bad += Math.floor(seededRandom(50,100));
+                            global.race.wishStats.bad += Math.floor(global.race['unlucky'] ? 99 : seededRandom(50,100));
                             messageQueue(loc('wish_steal_res',[sizeApproximation(gains[0]),global.resource[picked[0]].name]),'warning',false,['events']);
                         }
                     }
@@ -8367,7 +8372,7 @@ function minorWish(parent){
 
                     let event_pool = eventList('minor');
                     if (event_pool.length > 0){
-                        let event = event_pool[Math.floor(seededRandom(0,event_pool.length))];
+                        let event = event_pool[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,event_pool.length))];
                         let msg = events[event].effect();
                         messageQueue(msg,false,false,['events','minor_events']);
                         global.m_event.l = event;
@@ -8383,7 +8388,7 @@ function minorWish(parent){
                     let cheeseList = swissKnife(false,true);
                     let cheese = cheeseList[Math.floor(seededRandom(0,cheeseList.length))];
 
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[global.race['unlucky'] ? 0 : Math.floor(seededRandom(0,options.length))];
                     switch (spell){
                         case 'notorious':
                         {
@@ -8447,7 +8452,7 @@ function minorWish(parent){
                         }
                     }
 
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[global.race['unlucky'] ? 0 : Math.floor(seededRandom(0,options.length))];
                     switch (spell){
                         case 'troops':
                         {
@@ -8501,7 +8506,7 @@ function minorWish(parent){
                         options.push('professor');
                     }
 
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[global.race['unlucky'] ? 0 : Math.floor(seededRandom(0,options.length))];
                     switch (spell){
                         case 'magazine':
                         {
@@ -8598,7 +8603,7 @@ function majorWish(parent){
                         options.push('casino');
                     }
 
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[global.race['unlucky'] ? 1 : Math.floor(seededRandom(0,options.length))];
                     switch (spell){
                         case 'money':
                         {
@@ -8612,13 +8617,13 @@ function majorWish(parent){
                         }
                         case 'robbery':
                         {
-                            let cash = Math.floor(seededRandom(Math.round(global.resource.Money.max / 12),Math.round(global.resource.Money.max / 4)));
+                            let cash = global.race['unlucky'] ? Math.round(global.resource.Money.max / 12) : Math.floor(seededRandom(Math.round(global.resource.Money.max / 12),Math.round(global.resource.Money.max / 4)));
                             global.resource.Money.amount += cash;
                             if (global.resource.Money.amount > global.resource.Money.max){
                                 global.resource.Money.amount = global.resource.Money.max;
                             }
                             let victim = Math.floor(seededRandom(0,10));
-                            global.race.wishStats.bad += Math.floor(seededRandom(100,200));
+                            global.race.wishStats.bad += Math.floor(global.race['unlucky'] ? 199 : seededRandom(100,200));
                             messageQueue(loc('wish_robbery',[loc(`wish_robbery${victim}`),sizeApproximation(cash)]),'warning',false,['events']);
                             break;
                         }
@@ -8636,7 +8641,7 @@ function majorWish(parent){
                     global.race.wishStats.major = traits.wish.vars()[0];
 
                     let options = ['useless','common','rare','stolen','2xcommon','2xrare'];
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[Math.floor(global.race['unlucky'] ? 3 : seededRandom(0,options.length))];
 
                     let resList = [];
                     [
@@ -8653,7 +8658,7 @@ function majorWish(parent){
                             'Deuterium','Neutronium','Adamantite','Nano_Tube','Graphene','Stanene','Bolognium',
                             'Vitreloy','Orichalcum','Infernite','Elerium','Soul_Gem'
                         ].forEach(function(res){
-                            if (global.resource[res].display && (res === 'Soul_Gem' || global.resource[res].amount * 1.05 < global.resource[res].max)){
+                            if (global.resource[res].display && ((res === 'Soul_Gem' && !global.race['unlucky']) || global.resource[res].amount * 1.05 < global.resource[res].max)){
                                 resList.push(res);
                             }
                         });
@@ -8679,7 +8684,8 @@ function majorWish(parent){
                                 global.resource[res].amount += gain;
                             }
                             else {
-                                gain = Math.floor(seededRandom(10000,Math.floor(global.resource[res].max * 0.5)));
+                                gain = Math.floor(global.race['unlucky'] ? 10000 : seededRandom(10000,Math.floor(global.resource[res].max * 0.5)));
+                                //TBD only pick worst resources for unlucky
                                 global.resource[res].amount += gain;
                                 if (global.resource[res].amount > global.resource[res].max){
                                     global.resource[res].amount = global.resource[res].max;
@@ -8695,7 +8701,7 @@ function majorWish(parent){
                             messageQueue(loc('wish_gain_res',[sizeApproximation(gains[0]),global.resource[picked[0]].name]),'warning',false,['events']);
                         }
                         else if (spell === 'stolen'){
-                            global.race.wishStats.bad += Math.floor(seededRandom(100,200));
+                            global.race.wishStats.bad += Math.floor(global.race['unlucky'] ? 199 : seededRandom(100,200));
                             messageQueue(loc('wish_steal_res',[sizeApproximation(gains[0]),global.resource[picked[0]].name]),'warning',false,['events']);
                         }
                     }
@@ -8716,6 +8722,9 @@ function majorWish(parent){
                     }
 
                     let spell = options[Math.floor(seededRandom(0,options.length))];
+                    if(global.race['unlucky']){
+                        spell = options.includes('mad') ? 'mad' : 'fake';
+                    }
                     switch (spell){
                         case 'fake':
                         {
@@ -8790,7 +8799,7 @@ function majorWish(parent){
                         options.push('government');
                     }
 
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,options.length))];
                     switch (spell){
                         case 'potato':
                         {
@@ -8825,7 +8834,7 @@ function majorWish(parent){
                         options.push('zigg');
                     }
 
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,options.length))];
                     switch (spell){
                         case 'priest':
                         {
@@ -8858,7 +8867,7 @@ function majorWish(parent){
 
                     let event_pool = eventList('major');
                     if (event_pool.length > 0){
-                        let event = event_pool[Math.floor(seededRandom(0,event_pool.length))];
+                        let event = event_pool[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,event_pool.length))];
                         let msg = events[event].effect();
                         messageQueue(msg,'caution',false,['events','major_events']);
                         global.m_event.l = event;
@@ -8889,7 +8898,7 @@ function majorWish(parent){
                         options.push('syndicate');
                     }
                     
-                    let spell = options[Math.floor(seededRandom(0,options.length))];
+                    let spell = options[Math.floor(global.race['unlucky'] ? 0 : seededRandom(0,options.length))];
                     if (['gov0','gov1','gov2'].includes(spell)){
                         global.civic.foreign[spell].hstl = 0;
                         global.civic.foreign[spell].anx = true;
