@@ -1199,15 +1199,15 @@ export function eventList(type){
     if(global.race['unlucky']){
         let badList = [];
         if(type === 'major'){
-            badList = ['flare', 'tax_revolt', 'witch_hunt_crusade', 'siege', 'protest', 'scandal', 'pillage4', 'pillage3', 'pillage2', 'pillage1', 'raid', 'chicken_feast', 'm_curious', 'terrorist', 'brawl', 'mine_collapse', 'slave_death1', 'slave_death2', 'fire', 'inspiration', 'motivation'];
+            badList = ['tax_revolt', 'witch_hunt_crusade', 'siege', 'protest', 'scandal', 'pillage4', 'pillage3', 'pillage2', 'pillage1', 'raid', 'flare', 'chicken_feast', 'm_curious', 'terrorist', 'brawl', 'mine_collapse', 'slave_death1', 'slave_death2', 'fire', 'inspiration', 'motivation'];
             if(global.race['rage']){
                 badList.splice(badList.indexOf('terrorism'), 1);
             }
             if(global.civic.govern.type === 'oligarchy' ? 55 : 35 > global.civic.taxes.tax_rate){
                 badList.splice(badList.indexOf('tax_revolt'), 1);
             }
-            if(global.city.biome === 'oceanic'){
-                badList.splice(badList.indexOf('flare'), 1);
+            if(global.city.biome !== 'oceanic'){
+                badList.unshift('flare');
             }
             for(let i=0;i<badList.length; i++){
                 if(event_pool.includes(badList[i])){

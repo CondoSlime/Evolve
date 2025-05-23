@@ -4378,11 +4378,7 @@ export function bloodwar(){
                 pat_size += global.tech['hdroid'] ? jobScale(2) : jobScale(1);
                 terminators--;
             }
-            let pass = global.race['unlucky_intervention'] && global.tech['science'] < 15 && global.resource.Soul_Gem.amount < 2; //quantum entanglement is required
-            let pat_rating = global.race['unlucky'] ? 0 : Math.round(armyRating(pat_size,'hellArmy',hurt));
-            if(pass){
-                pat_rating = Math.min(Math.round(armyRating(pat_size,'hellArmy',hurt)), 35);
-            }
+            let pat_rating = Math.round(armyRating(pat_size,'hellArmy',hurt));
 
             let demons = global.race['unlucky'] ? Math.floor(global.portal.fortress.threat / 10) : Math.rand(Math.floor(global.portal.fortress.threat / 50), Math.floor(global.portal.fortress.threat / 10));
 
@@ -4401,9 +4397,10 @@ export function bloodwar(){
             if (global.race['ocular_power'] && global.race['ocularPowerConfig'] && global.race.ocularPowerConfig.f){
                 odds += Math.round(3 * traits.ocular_power.vars()[1] / 100);
             }
+            let pass = global.race['unlucky_intervention'] && global.tech['science'] < 15 && global.resource.Soul_Gem.amount < 2; //quantum entanglement is required
             if (Math.rand(0,odds) === 0 || global.race['unlucky'] && !pass /* good luck with this one */){
                 patrol_report.ambush = true;
-                dead += casualties(Math.round(demons * (1 + global.race['unlucky'] ? 1 : Math.random() * 3)),0,true,patrol_report);
+                dead += casualties(Math.round(demons * (1 + (global.race['unlucky'] ? 1 /*Math.random returns <1 but this number is rounded up anyways*/ : Math.random()) * 3)),0,true,patrol_report);
                 let killed = Math.round(pat_rating / 2);
                 if (demons < killed){
                     killed = demons;
@@ -4434,7 +4431,6 @@ export function bloodwar(){
                     global.portal.soul_forge.kills += killed;
                     soulCapacitor(killed);
                 }
-                console.log(killed);
                 if (killed > 0){
                     let div = 35 - Math.floor(p_on['attractor'] / 3);
                     if (div < 5){ div = 5; }
@@ -4575,7 +4571,6 @@ export function bloodwar(){
         }
         let demon_spawn = global.race['unlucky'] ? Math.round(10 * influx) : Math.rand(Math.round(10 * influx),Math.round(50 * influx));
         //for unlucky, demons kill everyone anyways, less demons means less soul forge income
-        console.log(demon_spawn);
         global.portal.fortress.threat += demon_spawn;
         day_report.demons = demon_spawn;
     }
@@ -4607,7 +4602,6 @@ export function bloodwar(){
         let max_risk = jobScale(10);
         let exposure = Math.min(max_risk, global.civic.hell_surveyor.workers);
         let risk = max_risk - (global.race['unlucky'] ? exposure : Math.rand(0,exposure + 1));
-        console.log(danger, risk);
         if (danger > risk){
             let cap = Math.round(danger);
             let dead = global.race['unlucky'] ? cap : Math.rand(0,cap + 1); // +1 for inclusive cap

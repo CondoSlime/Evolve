@@ -12734,7 +12734,6 @@ function longLoop(){
     if (astroSign === 'pisces'){
         minorTime -= astroVal('pisces')[0];
     }
-    console.log(mayorTime, global.event.t);
     if (!global.race.seeded || (global.race.seeded && global.race['chose'])){
         if ((global.race['unlucky_intervention'] && mayorTime - 10 >= global.event.t /*10 days in between events*/) || (!global.race['unlucky'] && Math.rand(0,global.event.t) === 0)){
             let event_pool = eventList('major');
