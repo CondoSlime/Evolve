@@ -838,6 +838,7 @@ $('#lbl_city').html('Village');
 
 var loopTick = 0; // Used to synchronize the fast, mid, and long loops to each other
 global.race['unlucky'] = 1;
+global.race['unlucky_intervention'] = 1;
 export function execGameLoops(periods = 1){
     // Currently there is no smart catch-up mechanism
     // Limit to 1 minute (12 game days) of simulation per call
