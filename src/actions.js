@@ -8533,32 +8533,34 @@ function sentience(){
 
     if (global.race['no_crispr'] || global.race['badgenes']){
         let repeat = global.race['badgenes'] ? 3 : 1;
-        let badTrait = false;
-        if(global.race['unlucky']){
-            let badList = ['slow', 'lazy', 'freespirit', 'hooved', 'heavy', 'pathetic', 'pyrophobia', 'slow_regen'];
-            if(global.race['cataclysm']){
-                badList = ['slow', 'dumb', 'heavy', 'freespirit', 'pyrophobia'];
-            }
-            if(global.race['truepath']){
-                badList = ['slow', 'slow_regen', 'lazy', 'hooved', 'heavy', 'pyrophobia', 'freespirit'];
-            }
-            if(global.race['lone_survivor']){
-                badList = ['slow', 'dumb', 'lazy', 'heavy', 'pyrophobia'];
-            }
-            if(global.race['fasting']){
-                badList = ['angry', 'slow', 'gluttony', 'lazy',' freespirit', 'hooved', 'heavy', 'pathetic', 'pyrophobia', 'slow_regen'];
-            }
-            badList.push(...neg_roll_traits);
-            for(let i=0;i<badList.length; i++){
-                if(!global.race[badList[i]] && neg_roll_traits.includes(badList[i] /* just in case */)){
-                    badTrait = badList[i];
-                    break;
+        for (let j=0; j<repeat; j++){
+            let badTrait = false;
+            if(global.race['unlucky']){
+                badTrait = 'slow';
+                let badList = ['slow', 'lazy', 'freespirit', 'hooved', 'heavy', 'pathetic', 'pyrophobia', 'unfavored', 'slow_regen'];
+                if(global.race['cataclysm']){
+                    badList = ['slow', 'dumb', 'heavy', 'freespirit', 'pyrophobia', 'unfavored'];
+                }
+                if(global.race['truepath']){
+                    badList = ['slow', 'slow_regen', 'lazy', 'hooved', 'heavy', 'pyrophobia', 'unfavored', 'freespirit'];
+                }
+                if(global.race['lone_survivor']){
+                    badList = ['slow', 'dumb', 'lazy', 'heavy', 'pyrophobia', 'unfavored'];
+                }
+                if(global.race['fasting']){
+                    badList = ['angry', 'slow', 'gluttony', 'lazy',' freespirit', 'hooved', 'heavy', 'pathetic', 'pyrophobia', 'unfavored', 'slow_regen'];
+                }
+                badList.push(...neg_roll_traits);
+                for(let i=0;i<badList.length; i++){
+                    if(!global.race[badList[i]] && neg_roll_traits.includes(badList[i] /* just in case */)){
+                        badTrait = badList[i];
+                        break;
+                    }
                 }
             }
-        }
-        for (let j=0; j<repeat; j++){
             for (let i=0; i<10; i++){
                 let trait = badTrait || neg_roll_traits[Math.rand(0,neg_roll_traits.length)];
+                badTrait = false;
                 if (global.race[trait]){
                     if (global.race[trait] == 0.25){
                         continue;

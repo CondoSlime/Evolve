@@ -145,7 +145,7 @@ export const events = {
         effect(){
             let army = armyRating(garrisonSize(),'army',global.civic.garrison.wounded);
             let eAdv = global.tech['high_tech'] ? global.tech['high_tech'] + 1 : 1;
-            let enemy = global.race['unlucky'] ? 49 : Math.rand(25,50) * eAdv;
+            let enemy = global.race['unlucky'] ? 49 * eAdv : Math.rand(25,50) * eAdv;
 
             let injured = global.civic.garrison.wounded > garrisonSize() ? garrisonSize() : global.civic.garrison.wounded;
             let killed =  Math.floor(global.race['unlucky'] ? Math.max(0, injured - 1) : seededRandom(0,injured));
@@ -1199,7 +1199,8 @@ export function eventList(type){
     if(global.race['unlucky']){
         let badList = [];
         if(type === 'major'){
-            badList = ['tax_revolt', 'witch_hunt_crusade', 'siege', 'protest', 'scandal', 'pillage4', 'pillage3', 'pillage2', 'pillage1', 'raid', 'flare', 'chicken_feast', 'm_curious', 'terrorist', 'brawl', 'mine_collapse', 'slave_death1', 'slave_death2', 'fire', 'inspiration', 'motivation'];
+            badList = ['tax_revolt', 'witch_hunt_crusade', 'siege', 'protest', 'scandal', 'pillage4', 'pillage3', 'pillage2', 'pillage1', 'raid', 'flare', 'chicken_feast',
+                'm_curious', 'terrorist', 'brawl', 'mine_collapse', 'slave_death1', 'slave_death2', 'fire', 'inspiration', 'motivation'];
             if(global.race['rage']){
                 badList.splice(badList.indexOf('terrorism'), 1);
             }
